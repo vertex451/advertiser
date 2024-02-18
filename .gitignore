@@ -1,0 +1,5 @@
+golang/channel_owner/.env
+golang/agency/.env
+
+.idea/
+.DS_Store
