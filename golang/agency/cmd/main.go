@@ -17,8 +17,6 @@ func main() {
 
 	go container.RunChannelListener()
 
-	//go container.StartUI()
-
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
 	<-exit

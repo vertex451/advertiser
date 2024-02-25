@@ -3,6 +3,7 @@ package transport
 import (
 	"advertiser/shared/pkg/service/transport"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"strings"
 )
 
 type stateData struct {
@@ -14,30 +15,27 @@ type stateData struct {
 	adID            string
 }
 
-func (t *Transport) handleStateQuery(update tgbotapi.Update) *tgbotapi.MessageConfig {
+func (s *Transport) handleStateQuery(update tgbotapi.Update) *tgbotapi.MessageConfig {
 	chatID := update.Message.Chat.ID
-	state := t.getState(chatID)
+	state := s.getState(chatID)
 
 	switch state.state {
-	case StateSetCampaignName:
-		return t.createCampaign(chatID, update.Message.Text)
-	case StateCreateAd:
-		return t.upsertAd(chatID, state.campaignID, "", update.Message.Text)
-	case StateUpdateAd:
-		return t.upsertAd(chatID, "", state.adID, update.Message.Text)
+	case StateEditTopics:
+		topics := strings.Split(update.Message.Text, ",")
+		return s.editChannelTopics(chatID, state.channelID, topics)
 	default:
-		return t.start(chatID)
+		return s.start(chatID)
 	}
 }
 
 // setState sets the state of the conversation for a given chat ID
-func (t *Transport) setState(chatID int64, data stateData) {
-	t.state.Store(chatID, data)
+func (s *Transport) setState(chatID int64, data stateData) {
+	s.state.Store(chatID, data)
 }
 
 // getState retrieves the state of the conversation for a given chat ID
-func (t *Transport) getState(chatID int64) stateData {
-	state, ok := t.state.Load(chatID)
+func (s *Transport) getState(chatID int64) stateData {
+	state, ok := s.state.Load(chatID)
 	if !ok {
 		return stateData{
 			state: StateStart,
@@ -47,14 +45,14 @@ func (t *Transport) getState(chatID int64) stateData {
 	return state.(stateData)
 }
 
-func (t *Transport) resetState(chatID int64) {
-	t.state.Store(chatID, stateData{
+func (s *Transport) resetState(chatID int64) {
+	s.state.Store(chatID, stateData{
 		state: StateStart,
 	})
 }
 
-func (t *Transport) addCrumbs(params transport.CallBackQueryParams) {
-	rawState, ok := t.state.Load(params.ChatID)
+func (s *Transport) addCrumbs(params transport.CallBackQueryParams) {
+	rawState, ok := s.state.Load(params.ChatID)
 	var state stateData
 	if ok {
 		state = rawState.(stateData)
@@ -66,5 +64,5 @@ func (t *Transport) addCrumbs(params transport.CallBackQueryParams) {
 
 	state.crumbs = append(state.crumbs, params)
 
-	t.state.Store(params.ChatID, state)
+	s.state.Store(params.ChatID, state)
 }

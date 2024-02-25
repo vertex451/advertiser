@@ -1,7 +1,7 @@
 package postgresql
 
 import (
-	"advertiser/shared/pkg/repo/models"
+	"advertiser/shared/pkg/service/repo/models"
 	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
 	"sort"
@@ -88,7 +88,7 @@ func (r *Repository) CampaignDetails(campaignID uuid.UUID) (*models.Campaign, er
 func (r *Repository) UpsertAd(advertisement models.Advertisement) (*uuid.UUID, error) {
 	var err error
 	if advertisement.ID != uuid.Nil {
-		err = r.Db.Save(&advertisement).Error
+		err = r.Db.Updates(&advertisement).Error
 	} else {
 		err = r.Db.Create(&advertisement).Error
 	}
@@ -101,7 +101,7 @@ func (r *Repository) GetAdDetails(id uuid.UUID) (*models.Advertisement, error) {
 		ID: id,
 	}
 
-	err := r.Db.Find(&ad).Error
+	err := r.Db.Preload("TargetTopics").Find(&ad).Error
 	if err != nil {
 		return nil, err
 	}
@@ -109,15 +109,9 @@ func (r *Repository) GetAdDetails(id uuid.UUID) (*models.Advertisement, error) {
 	return &ad, err
 }
 
-func (r *Repository) EditAd(ad models.Advertisement) (*models.Advertisement, error) {
-	if ad.ID == uuid.Nil {
-		zap.L().Panic("advertisement uuid is nil!")
-	}
-
-	err := r.Db.Save(&ad).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return &ad, err
+func (r *Repository) RunAd(id uuid.UUID) error {
+	return r.Db.Updates(&models.Advertisement{
+		ID:     id,
+		Status: models.AdsStatusRunning,
+	}).Error
 }

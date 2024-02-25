@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"advertiser/shared/pkg/service/transport"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"strings"
@@ -9,7 +10,7 @@ import (
 func (t *Transport) start(respondTo int64) *tgbotapi.MessageConfig {
 	t.resetState(respondTo)
 
-	msg := addNavigationButtons(
+	msg := transport.AddNavigationButtons(
 		tgbotapi.NewMessage(respondTo, "Choose action:"),
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("List my campaigns", fmt.Sprintf("%s", MyCampaigns)),
@@ -40,7 +41,7 @@ func (t *Transport) allTopics(respondTo int64) *tgbotapi.MessageConfig {
 Supported topics:
 %s
 `, strings.Join(t.uc.AllTopics(), ", ")))
-	msg = addNavigationButtons(msg, nil)
+	msg = transport.AddNavigationButtons(msg, nil)
 
 	return &msg
 }

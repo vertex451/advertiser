@@ -1,7 +1,7 @@
 package dep_container
 
 import (
-	"advertiser/channel_owner/internal/service/repo/postgresql"
+	"advertiser/channel_owner/internal/service/listener/repo/postgresql"
 	"github.com/sarulabs/di"
 )
 

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"advertiser/shared/pkg/repo"
-	"advertiser/shared/pkg/repo/models"
+	"advertiser/shared/pkg/service/repo"
+	"advertiser/shared/pkg/service/repo/models"
 	"fmt"
 )
 

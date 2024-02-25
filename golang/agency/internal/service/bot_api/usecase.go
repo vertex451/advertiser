@@ -1,7 +1,7 @@
 package bot_api
 
 import (
-	"advertiser/shared/pkg/repo/models"
+	"advertiser/shared/pkg/service/repo/models"
 	uuid "github.com/satori/go.uuid"
 	"tg-bot/internal/service/bot_api/usecase/types"
 )
@@ -15,5 +15,5 @@ type UseCase interface {
 
 	UpsertAd(advertisement models.Advertisement) (*uuid.UUID, error)
 	GetAdDetails(uuid.UUID) (*types.Advertisement, error)
-	EditAd(models.Advertisement) (*models.Advertisement, error)
+	RunAd(uuid.UUID) error
 }

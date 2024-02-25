@@ -10,9 +10,10 @@ type dep func(builder *di.Builder) error
 var dependencyList = []dep{
 	RegisterConfig,
 	RegisterLogger,
-	//RegisterUI,
 	RegisterPostgresqlService,
-	RegisterTgBotApiService,
+	RegisterTgBotApi,
+	RegisterListenerService,
+	RegisterNotificationService,
 }
 
 // Container represents DI container.
@@ -22,14 +23,15 @@ type Container struct {
 
 // New creates new Application Dependency Container.
 func New() (*Container, error) {
+	var err error
 	builder, err := di.NewBuilder()
 	if err != nil {
 		return nil, err
 	}
 
 	c := Container{}
-	for _, dep := range dependencyList {
-		if err := dep(builder); err != nil {
+	for _, oneDependency := range dependencyList {
+		if err = oneDependency(builder); err != nil {
 			return nil, err
 		}
 	}

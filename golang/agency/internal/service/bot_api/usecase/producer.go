@@ -1,9 +1,8 @@
 package usecase
 
 import (
-	"advertiser/shared/pkg/repo/models"
-	"advertiser/shared/pkg/utils"
-
+	"advertiser/shared/pkg/service/repo/models"
+	"advertiser/shared/pkg/service/usecase"
 	uuid "github.com/satori/go.uuid"
 	"tg-bot/internal/service/bot_api/usecase/types"
 )
@@ -37,7 +36,7 @@ func (uc *UseCase) UpsertAd(advertisement models.Advertisement) (*uuid.UUID, err
 	for _, topic := range advertisement.TargetTopics {
 		topics = append(topics, topic.ID)
 	}
-	err := utils.ValidateTopics(uc.topics, topics)
+	err := usecase.ValidateTopics(uc.topics, topics)
 	if err != nil {
 		return nil, err
 	}
@@ -68,6 +67,6 @@ func (uc *UseCase) GetAdDetails(id uuid.UUID) (*types.Advertisement, error) {
 	}, nil
 }
 
-func (uc *UseCase) EditAd(ad models.Advertisement) (*models.Advertisement, error) {
-	return uc.repo.EditAd(ad)
+func (uc *UseCase) RunAd(id uuid.UUID) error {
+	return uc.repo.RunAd(id)
 }

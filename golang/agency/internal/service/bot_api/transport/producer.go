@@ -1,7 +1,8 @@
 package transport
 
 import (
-	"advertiser/shared/pkg/repo/models"
+	"advertiser/shared/pkg/service/repo/models"
+	"advertiser/shared/pkg/service/transport"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pkg/errors"
@@ -10,19 +11,6 @@ import (
 	"gorm.io/gorm"
 	"strings"
 )
-
-//func (t *Transport) adsAgencyView(respondTo int64) *tgbotapi.MessageConfig {
-//	msg := addNavigationButtons(
-//		tgbotapi.NewMessage(respondTo, "Choose action:"),
-//		tgbotapi.NewInlineKeyboardRow(
-//			tgbotapi.NewInlineKeyboardButtonData("List my campaigns", fmt.Sprintf("%s", MyCampaigns)),
-//			tgbotapi.NewInlineKeyboardButtonData("Create new campaign", CreateCampaign),
-//			tgbotapi.NewInlineKeyboardButtonData("List all topics", fmt.Sprintf("%s", AllTopicsWithCoverage)),
-//		),
-//	)
-//
-//	return &msg
-//}
 
 func (t *Transport) allTopicsWithCoverage(respondTo int64) *tgbotapi.MessageConfig {
 	var msg tgbotapi.MessageConfig
@@ -33,12 +21,14 @@ func (t *Transport) allTopicsWithCoverage(respondTo int64) *tgbotapi.MessageConf
 	} else {
 		var res []string
 		for topic, coverage := range topics {
-			res = append(res, fmt.Sprintf("%s: %v subscribers", topic, coverage))
+			if coverage > 0 {
+				res = append(res, fmt.Sprintf("%s: %v subscribers", topic, coverage))
+			}
 		}
 		msg = tgbotapi.NewMessage(respondTo, strings.Join(res, "\n"))
 	}
 
-	msg = addNavigationButtons(msg, nil)
+	msg = transport.AddNavigationButtons(msg, nil)
 
 	return &msg
 }
@@ -51,10 +41,10 @@ func (t *Transport) createCampaign(respondTo int64, campaignName string) *tgbota
 	if err != nil {
 		zap.L().Error("failed to create campaign", zap.Error(err))
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to create campaign. Error: %v", err))
-		msg = addNavigationButtons(msg, nil)
+		msg = transport.AddNavigationButtons(msg, nil)
 	} else {
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Campaing %s created!", campaignName))
-		msg = addNavigationButtons(msg, tgbotapi.NewInlineKeyboardRow(
+		msg = transport.AddNavigationButtons(msg, tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData(
 				fmt.Sprintf("Create my first Ad in %s", campaignName),
 				fmt.Sprintf("%s/%v", CreateAd, campaignID)),
@@ -75,7 +65,7 @@ func (t *Transport) listMyCampaigns(respondTo int64) *tgbotapi.MessageConfig {
 			msg = tgbotapi.NewMessage(respondTo, "failed to list campaigns")
 		}
 
-		msg = addNavigationButtons(msg, nil)
+		msg = transport.AddNavigationButtons(msg, nil)
 
 		return &msg
 	}
@@ -97,7 +87,7 @@ func (t *Transport) listMyCampaigns(respondTo int64) *tgbotapi.MessageConfig {
 		)
 	}
 
-	msg = addNavigationButtons(msg, buttons)
+	msg = transport.AddNavigationButtons(msg, buttons)
 
 	return &msg
 }
@@ -109,7 +99,7 @@ func (t *Transport) campaignDetails(respondTo int64, rawCampaignID string) *tgbo
 	if err != nil {
 		zap.L().Error("failed to parse campaignID into uuid", zap.Error(err))
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to read campaignID. Error: %v", err))
-		msg = addNavigationButtons(msg, nil)
+		msg = transport.AddNavigationButtons(msg, nil)
 
 		return &msg
 	}
@@ -118,7 +108,7 @@ func (t *Transport) campaignDetails(respondTo int64, rawCampaignID string) *tgbo
 	if err != nil {
 		zap.L().Error("failed to get campaignDetails", zap.Error(err))
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to create an Ad. Error: %v", err))
-		msg = addNavigationButtons(msg, nil)
+		msg = transport.AddNavigationButtons(msg, nil)
 
 		return &msg
 	}
@@ -142,7 +132,7 @@ func (t *Transport) campaignDetails(respondTo int64, rawCampaignID string) *tgbo
 			"Create an advertisement", fmt.Sprintf("%s/%s", CreateAd, campaignID)),
 	)
 
-	msg = addNavigationButtons(msg, buttons)
+	msg = transport.AddNavigationButtons(msg, buttons)
 
 	return &msg
 }
@@ -155,7 +145,7 @@ func (t *Transport) upsertAd(respondTo int64, campaignID, adID, input string) *t
 	if err != nil {
 		zap.L().Error("failed to parse an input", zap.Error(err))
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to create an Ad. Error: %v", err))
-		msg = addNavigationButtons(msg, nil)
+		msg = transport.AddNavigationButtons(msg, nil)
 
 		return &msg
 	}
@@ -165,10 +155,14 @@ func (t *Transport) upsertAd(respondTo int64, campaignID, adID, input string) *t
 		zap.L().Error("failed to create an ad", zap.Error(err))
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to create an Ad. Error: %v", err))
 	} else {
-		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Ad %s created!", ad.Name))
+		if ad.ID == uuid.Nil {
+			msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Advertisement %s created!", ad.Name))
+		} else {
+			msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Advertisement %s updated!!", ad.Name))
+		}
 	}
 
-	msg = addNavigationButtons(msg, nil)
+	msg = transport.AddNavigationButtons(msg, nil)
 
 	return &msg
 }
@@ -180,12 +174,13 @@ func (t *Transport) GetAdDetails(respondTo int64, rawID string) *tgbotapi.Messag
 	if err != nil {
 		zap.L().Error("failed to parse id", zap.Error(err))
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to parse advertisement id. Error: %v", err))
-		msg = addNavigationButtons(msg, nil)
+		msg = transport.AddNavigationButtons(msg, nil)
 
 		return &msg
 	}
 
 	var buttons []tgbotapi.InlineKeyboardButton
+
 	ad, err := t.uc.GetAdDetails(id)
 	if err != nil {
 		zap.L().Error("failed to get advertisement details", zap.Error(err))
@@ -206,13 +201,42 @@ Estimated coverage: %v
 			ad.Coverage,
 		))
 
-		buttons = append(buttons,
+		buttons = []tgbotapi.InlineKeyboardButton{
 			tgbotapi.NewInlineKeyboardButtonData(
 				"Edit", fmt.Sprintf("%s/%s", EditAd, ad.ID)),
-		)
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Run advertisement", fmt.Sprintf("%s/%s", RunAd, ad.ID)),
+		}
 	}
 
-	msg = addNavigationButtons(msg, buttons)
+	msg = transport.AddNavigationButtons(msg, buttons)
+
+	return &msg
+
+}
+
+func (t *Transport) RunAd(respondTo int64, rawID string) *tgbotapi.MessageConfig {
+	var msg tgbotapi.MessageConfig
+
+	id, err := uuid.FromString(rawID)
+	if err != nil {
+		zap.L().Error("failed to parse id", zap.Error(err))
+		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to parse advertisement id. Error: %v", err))
+		msg = transport.AddNavigationButtons(msg, nil)
+
+		return &msg
+	}
+
+	var buttons []tgbotapi.InlineKeyboardButton
+	err = t.uc.RunAd(id)
+	if err != nil {
+		zap.L().Error("failed ailed to run advertisement", zap.Error(err))
+		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to run advertisement. Error: %v", err))
+	} else {
+		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Advertising is running! We will start showing it in 12 hours after moderation"))
+	}
+
+	msg = transport.AddNavigationButtons(msg, buttons)
 
 	return &msg
 
@@ -255,6 +279,7 @@ func parseAndValidateCreateAdInput(rawCampaignID, rawAdID, rawInput string) (*mo
 			if err != nil {
 				return nil, errors.New("invalid budget format")
 			}
+			ad.Budget = budget
 		case "Message":
 			ad.Message = value
 		case "TargetTopics":

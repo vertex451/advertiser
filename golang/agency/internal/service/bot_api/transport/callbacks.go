@@ -1,18 +1,12 @@
 package transport
 
 import (
+	"advertiser/shared/pkg/service/transport"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"strings"
 )
 
-type CallBackQueryParams struct {
-	ChatID   int64
-	Page     string
-	Variable string
-}
-
 func (t *Transport) handleCallbackQuery(query *tgbotapi.CallbackQuery) *tgbotapi.MessageConfig {
-	params := parseCallBackQuery(query)
+	params := transport.ParseCallBackQuery(query)
 
 	if params.Page != Back {
 		t.addCrumbs(params)
@@ -21,7 +15,7 @@ func (t *Transport) handleCallbackQuery(query *tgbotapi.CallbackQuery) *tgbotapi
 	return t.NavigateToPage(params)
 }
 
-func (t *Transport) NavigateToPage(params CallBackQueryParams) *tgbotapi.MessageConfig {
+func (t *Transport) NavigateToPage(params transport.CallBackQueryParams) *tgbotapi.MessageConfig {
 	switch params.Page {
 	case Start:
 		return t.start(params.ChatID)
@@ -42,23 +36,10 @@ func (t *Transport) NavigateToPage(params CallBackQueryParams) *tgbotapi.Message
 		return t.GetAdDetails(params.ChatID, params.Variable)
 	case EditAd:
 		return t.upsertAdPrompt(params.ChatID, params.Variable, StateUpdateAd)
+	case RunAd:
+		return t.RunAd(params.ChatID, params.Variable)
 
 	default:
 		return t.start(params.ChatID)
 	}
-}
-
-func parseCallBackQuery(query *tgbotapi.CallbackQuery) CallBackQueryParams {
-	parsed := strings.Split(query.Data, "/")
-
-	res := CallBackQueryParams{
-		ChatID: query.Message.Chat.ID,
-		Page:   parsed[0],
-	}
-
-	if len(parsed) > 1 {
-		res.Variable = parsed[1]
-	}
-
-	return res
 }
