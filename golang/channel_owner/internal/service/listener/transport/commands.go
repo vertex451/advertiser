@@ -2,6 +2,7 @@ package transport
 
 import (
 	"advertiser/shared/pkg/service/constants"
+	"advertiser/shared/pkg/service/repo/models"
 	"advertiser/shared/pkg/service/transport"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -12,6 +13,18 @@ import (
 	"strconv"
 	"strings"
 )
+
+func (s *Transport) handleCommand(update tgbotapi.Update) *tgbotapi.MessageConfig {
+	switch update.Message.Command() {
+	case constants.Start:
+		return s.start(update.Message.Chat.ID)
+	case constants.AllTopics:
+		return s.allTopics(update.Message.Chat.ID)
+	case Moderate:
+		return s.moderate(update.Message.Chat.ID)
+	}
+	return nil
+}
 
 func (s *Transport) start(respondTo int64) *tgbotapi.MessageConfig {
 	s.resetState(respondTo)
@@ -137,17 +150,96 @@ func (s *Transport) editChannelTopics(responseTo, channelID int64, topics []stri
 	return &msg
 }
 
-func (s *Transport) moderationDecision(respondTo int64, decision string, adId string) *tgbotapi.MessageConfig {
+func (s *Transport) moderate(id int64) *tgbotapi.MessageConfig {
+	ads, err := s.uc.GetAdsToModerateByUserID(id)
+	if err != nil {
+		zap.L().Error("failed to get ads to moderate", zap.Error(err))
+	}
+
+	var msg tgbotapi.MessageConfig
+	var channelButtons []tgbotapi.InlineKeyboardButton
+	if len(ads) == 0 {
+		msg = tgbotapi.NewMessage(id, "No ads to moderate")
+	} else {
+		msg = tgbotapi.NewMessage(id, "Select an advertisement to moderate:")
+		for _, entry := range ads {
+			fmt.Println("### ads", entry)
+			channelButtons = append(channelButtons,
+				tgbotapi.NewInlineKeyboardButtonData(
+					fmt.Sprintf("%s (cpv: %v)", entry.ChannelTitle, entry.AdCostPerView),
+					fmt.Sprintf("%s/%s", ModerateDetails, entry.ID),
+				),
+			)
+		}
+	}
+
+	msg = transport.AddNavigationButtons(msg, channelButtons)
+
+	return &msg
+}
+
+func (s *Transport) GetAdvertisementDetails(chatID int64, advertisementChannelID string) *tgbotapi.MessageConfig {
+	advertisementChannel, err := s.uc.GetAdChanDetails(advertisementChannelID)
+	if err != nil {
+		zap.L().Error("failed to get ad details", zap.Error(err))
+		return nil
+	}
+
+	var msg tgbotapi.MessageConfig
+	var channelButtons []tgbotapi.InlineKeyboardButton
+
+	msg = tgbotapi.NewMessage(chatID, fmt.Sprintf(
+		`
+Target channel: %s
+Advertisement details:
+- Name: %s
+- Cost per view: %v
+- Message: %s
+`,
+		advertisementChannel.ChannelTitle,
+		advertisementChannel.AdName,
+		advertisementChannel.AdCostPerView,
+		advertisementChannel.AdMessage,
+	))
+	channelButtons = append(channelButtons,
+		tgbotapi.NewInlineKeyboardButtonData(
+			fmt.Sprintf("%s", "Post Now"),
+			fmt.Sprintf("%s/%s", PostNow, advertisementChannel.ID),
+		),
+		tgbotapi.NewInlineKeyboardButtonData(
+			fmt.Sprintf("%s", "Reject"),
+			fmt.Sprintf("%s/%s", RejectAd, advertisementChannel.ID),
+		),
+	)
+
+	msg = transport.AddNavigationButtons(msg, channelButtons)
+
+	return &msg
+}
+
+func (s *Transport) moderationDecision(respondTo int64, decision string, adChanID string) *tgbotapi.MessageConfig {
+	var err error
 	var msg tgbotapi.MessageConfig
 
 	switch decision {
-	case ApproveAd:
-		fmt.Println("### APPROVED", adId)
-		msg = tgbotapi.NewMessage(respondTo, "Approved!")
+	case PostNow:
+		err = s.PostAdvertisement(adChanID)
+		if err != nil {
+			msg = tgbotapi.NewMessage(respondTo, "Failed to post an advertisement")
+		} else {
+			msg = tgbotapi.NewMessage(respondTo, "Posted!")
+		}
 	case RejectAd:
-		fmt.Println("### REJECTED", adId)
-		msg = tgbotapi.NewMessage(respondTo, "Rejected!")
+		err = s.uc.UpdateAdChanStatus(adChanID, models.AdChanRejected)
+		if err != nil {
+			msg = tgbotapi.NewMessage(respondTo, "Failed to reject an advertisement")
+			zap.L().Error("failed to update advertisement status", zap.Error(err))
+		} else {
+			msg = tgbotapi.NewMessage(respondTo, "Rejected!")
+		}
 	}
+
+	msg = transport.AddNavigationButtons(msg, nil)
 
 	return &msg
 }

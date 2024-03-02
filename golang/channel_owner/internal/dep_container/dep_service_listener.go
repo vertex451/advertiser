@@ -28,3 +28,8 @@ func RegisterListenerService(builder *di.Builder) error {
 func (c Container) RunChannelListener() {
 	c.container.Get(listenerServiceDefName).(*transport.Transport).MonitorChannels()
 }
+
+// RunNotificationService runs RunNotificationService dependency.
+func (c Container) RunNotificationService() {
+	c.container.Get(listenerServiceDefName).(*transport.Transport).RunNotificationService()
+}

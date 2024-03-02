@@ -26,6 +26,8 @@ const (
 	AdDetails = "ad_details"
 	EditAd    = "edit_ad"
 	RunAd     = "run_ad"
+	PauseAd   = "pause_ad"
+	FinishAd  = "finish_ad"
 )
 
 type BotState int

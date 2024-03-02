@@ -32,8 +32,10 @@ func (s *Transport) NavigateToPage(params transport.CallBackQueryParams) *tgbota
 	case EditChannelsTopics:
 		return s.editTopicsPrompt(params.ChatID, params.Variable)
 
-	case ApproveAd:
-		return s.moderationDecision(params.ChatID, ApproveAd, params.Variable)
+	case ModerateDetails:
+		return s.GetAdvertisementDetails(params.ChatID, params.Variable)
+	case PostNow:
+		return s.moderationDecision(params.ChatID, PostNow, params.Variable)
 	case RejectAd:
 		return s.moderationDecision(params.ChatID, RejectAd, params.Variable)
 

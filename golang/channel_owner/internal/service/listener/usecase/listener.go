@@ -43,3 +43,11 @@ func (uc *UseCase) UpdateChannelTopics(channelID int64, topics []string) (err er
 func (uc *UseCase) DeleteChannel(chatID int64) error {
 	return uc.repo.DeleteChannel(chatID)
 }
+
+func (uc *UseCase) GetAdsToModerateByUserID(id int64) ([]models.AdvertisementChannel, error) {
+	return uc.repo.GetAdsToModerateByUserID(id)
+}
+
+func (uc *UseCase) GetAdChanDetails(id string) (*models.AdvertisementChannel, error) {
+	return uc.repo.GetAdChanDetails(id)
+}

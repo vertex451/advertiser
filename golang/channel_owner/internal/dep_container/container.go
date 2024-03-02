@@ -13,7 +13,6 @@ var dependencyList = []dep{
 	RegisterPostgresqlService,
 	RegisterTgBotApi,
 	RegisterListenerService,
-	RegisterNotificationService,
 }
 
 // Container represents DI container.

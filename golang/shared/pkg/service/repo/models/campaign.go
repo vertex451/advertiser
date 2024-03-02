@@ -19,7 +19,9 @@ type Campaign struct {
 }
 
 func (c *Campaign) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = uuid.NewV4()
+	if c.ID == uuid.Nil {
+		c.ID = uuid.NewV4()
+	}
 
 	return
 }

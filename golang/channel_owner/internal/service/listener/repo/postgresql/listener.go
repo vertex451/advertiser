@@ -116,6 +116,24 @@ func (r *Repository) DeleteChannel(chatID int64) error {
 	return r.Db.Delete(&models.Channel{}, chatID).Error
 }
 
+func (r *Repository) GetAdsToModerateByUserID(id int64) ([]models.AdvertisementChannel, error) {
+	var ads []models.AdvertisementChannel
+	if err := r.Db.Where("channel_owner_id = ? AND status = ?", id, models.AdsStatusCreated).Find(&ads).Error; err != nil {
+		return nil, err
+	}
+
+	return ads, nil
+}
+
+func (r *Repository) GetAdChanDetails(id string) (*models.AdvertisementChannel, error) {
+	var ad models.AdvertisementChannel
+	if err := r.Db.First(&ad, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+
+	return &ad, nil
+}
+
 func findMissingTopics(foundTopics []*models.Topic, providedNames []string) []string {
 	foundMap := make(map[string]bool)
 	for _, topic := range foundTopics {

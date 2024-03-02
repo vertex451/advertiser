@@ -9,8 +9,12 @@ const (
 	EditChannelsTopics = "edit_channel_topics"
 	ListChannelsTopics = "list_channels_topics"
 	MyChannels         = "my_channels"
-	ApproveAd          = "approve_ad"
-	RejectAd           = "reject_ad"
+
+	Moderate        = "moderate"
+	ModerateDetails = "moderate_details"
+	PostNow         = "post_now"
+	PostLater       = "post_later"
+	RejectAd        = "reject_ad"
 )
 
 type BotState int

@@ -4,7 +4,7 @@ import (
 	"advertiser/shared/pkg/service/repo/models"
 	"advertiser/shared/pkg/service/usecase"
 	uuid "github.com/satori/go.uuid"
-	"tg-bot/internal/service/bot_api/usecase/types"
+	"tg-bot/internal/service/bot_api/types"
 )
 
 func (uc *UseCase) AllTopics() (res []string) {
@@ -58,12 +58,13 @@ func (uc *UseCase) GetAdDetails(id uuid.UUID) (*types.Advertisement, error) {
 	}
 
 	return &types.Advertisement{
-		ID:       ad.ID,
-		Name:     ad.Name,
-		Topics:   topicList,
-		Coverage: coverage,
 		Budget:   ad.Budget,
+		Coverage: coverage,
+		ID:       ad.ID,
 		Message:  ad.Message,
+		Name:     ad.Name,
+		Status:   ad.Status,
+		Topics:   topicList,
 	}, nil
 }
 

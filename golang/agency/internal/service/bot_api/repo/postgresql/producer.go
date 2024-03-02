@@ -90,6 +90,7 @@ func (r *Repository) UpsertAd(advertisement models.Advertisement) (*uuid.UUID, e
 	if advertisement.ID != uuid.Nil {
 		err = r.Db.Updates(&advertisement).Error
 	} else {
+		advertisement.Status = models.AdsStatusCreated
 		err = r.Db.Create(&advertisement).Error
 	}
 
@@ -112,6 +113,6 @@ func (r *Repository) GetAdDetails(id uuid.UUID) (*models.Advertisement, error) {
 func (r *Repository) RunAd(id uuid.UUID) error {
 	return r.Db.Updates(&models.Advertisement{
 		ID:     id,
-		Status: models.AdsStatusRunning,
+		Status: models.AdsStatusPending,
 	}).Error
 }

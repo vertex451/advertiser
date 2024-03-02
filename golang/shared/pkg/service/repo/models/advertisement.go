@@ -10,6 +10,7 @@ type AdvertisementStatus string
 
 const (
 	AdsStatusCreated     AdvertisementStatus = "created"
+	AdsStatusPending     AdvertisementStatus = "pending"
 	AdsStatusRunning     AdvertisementStatus = "running"
 	AdsStatusPaused      AdvertisementStatus = "paused"
 	AdsStatusOutOfBudget AdvertisementStatus = "out_of_budget"
@@ -23,11 +24,14 @@ type Advertisement struct {
 	// metadata
 	Name         string
 	TargetTopics []Topic `gorm:"many2many:advertisement_topics"`
-	Budget       int
 	Message      string
 	Status       AdvertisementStatus
 
+	Budget      int
+	CostPerView float32
+
 	// statistics
+	//AdsChannel []*AdvertisementChannel `gorm:"many2many:advertisement_channels;"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -35,7 +39,9 @@ type Advertisement struct {
 }
 
 func (a *Advertisement) BeforeCreate(tx *gorm.DB) (err error) {
-	a.ID = uuid.NewV4()
+	if a.ID == uuid.Nil {
+		a.ID = uuid.NewV4()
+	}
 
 	return
 }

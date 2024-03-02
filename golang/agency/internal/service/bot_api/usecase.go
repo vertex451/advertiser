@@ -3,7 +3,7 @@ package bot_api
 import (
 	"advertiser/shared/pkg/service/repo/models"
 	uuid "github.com/satori/go.uuid"
-	"tg-bot/internal/service/bot_api/usecase/types"
+	"tg-bot/internal/service/bot_api/types"
 )
 
 type UseCase interface {

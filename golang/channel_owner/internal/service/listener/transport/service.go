@@ -2,7 +2,6 @@ package transport
 
 import (
 	"advertiser/channel_owner/internal/service/listener"
-	"advertiser/shared/pkg/service/constants"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
 	"sync"
@@ -65,12 +64,7 @@ func (s *Transport) MonitorChannels() {
 func (s *Transport) handleUpdate(update tgbotapi.Update) *tgbotapi.MessageConfig {
 	if update.Message != nil {
 		if update.Message.IsCommand() {
-			switch update.Message.Command() {
-			case constants.Start:
-				return s.start(update.Message.Chat.ID)
-			case constants.AllTopics:
-				return s.allTopics(update.Message.Chat.ID)
-			}
+			return s.handleCommand(update)
 		}
 
 		if update.Message.Text != "" {

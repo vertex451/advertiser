@@ -1,7 +1,6 @@
 package listener
 
 import (
-	"advertiser/channel_owner/internal/service/listener/repo/postgresql/types"
 	"advertiser/shared/pkg/service/repo/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -19,8 +18,16 @@ type Listener interface {
 	ListMyChannels(userID int64) (map[int64]string, error)
 	GetChannelInfo(channelID int64) (channel *models.Channel, err error)
 	UpdateChannelTopics(channelID int64, topics []string) (err error)
+
+	GetAdsToModerateByUserID(id int64) ([]models.AdvertisementChannel, error)
+
+	GetAdChanDetails(id string) (*models.AdvertisementChannel, error)
+
+	UpdateAdChanStatus(adChannelID string, status models.AdChanStatus) error
+	SetAdChanMessageID(adChanID string, msgID int) error
 }
 
 type Writer interface {
-	CheckForNewAds() ([]types.GetAdsOnModerationResult, error)
+	CheckForNewAds()
+	GetAdsChannelByStatus(status models.AdChanStatus) (map[int64][]models.AdvertisementChannel, error)
 }
