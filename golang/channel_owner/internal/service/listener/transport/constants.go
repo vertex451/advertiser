@@ -22,4 +22,5 @@ type BotState int
 const (
 	StateStart BotState = iota
 	StateEditTopics
+	StateWaitForRejectReason
 )

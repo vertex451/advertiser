@@ -5,30 +5,30 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func (t *Transport) createCampaignPrompt(responseTo int64) *tgbotapi.MessageConfig {
-	msg := tgbotapi.NewMessage(responseTo, "Send new campaign name:")
+func (t *Transport) createCampaignPrompt(respondTo int64) *tgbotapi.MessageConfig {
+	msg := tgbotapi.NewMessage(respondTo, "Send new campaign name:")
 
-	t.setState(responseTo, stateData{
+	t.setState(respondTo, stateData{
 		state:           StateSetCampaignName,
-		botDirectChatID: responseTo,
+		botDirectChatID: respondTo,
 	})
 
 	return &msg
 }
 
-func (t *Transport) upsertAdPrompt(responseTo int64, variable string, state BotState) *tgbotapi.MessageConfig {
+func (t *Transport) upsertAdPrompt(respondTo int64, variable string, state BotState) *tgbotapi.MessageConfig {
 	var msg tgbotapi.MessageConfig
 	var action string
 	switch state {
 	case StateCreateAd:
 		action = "create"
-		t.setState(responseTo, stateData{
+		t.setState(respondTo, stateData{
 			state:      StateCreateAd,
 			campaignID: variable,
 		})
 	case StateUpdateAd:
 		action = "update"
-		t.setState(responseTo, stateData{
+		t.setState(respondTo, stateData{
 			state: StateUpdateAd,
 			adID:  variable,
 		})
@@ -42,7 +42,7 @@ BudgetUSD: 100
 CostPerView: 0.1
 Message: Follow this [link](https://www.investing.com/) to find more about investments!
 `, action)
-	msg = tgbotapi.NewMessage(responseTo, promptText)
+	msg = tgbotapi.NewMessage(respondTo, promptText)
 
 	return &msg
 }

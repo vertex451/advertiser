@@ -189,6 +189,7 @@ func (t *Transport) GetAdDetails(respondTo int64, rawID string) *tgbotapi.Messag
 	} else {
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf(`
 Name: %s
+Status: %s
 TargetTopics: %s
 BudgetUSD: %v
 Message: %s
@@ -196,6 +197,7 @@ Message: %s
 Estimated coverage: %v
 `,
 			ad.Name,
+			ad.Status,
 			strings.Join(ad.Topics, ", "),
 			ad.Budget,
 			ad.Message,
@@ -210,12 +212,12 @@ Estimated coverage: %v
 					"Run", fmt.Sprintf("%s/%s", RunAd, ad.ID)),
 			)
 		} else {
-			buttons = append(buttons,
-				tgbotapi.NewInlineKeyboardButtonData(
-					"Pause", fmt.Sprintf("%s/%s", PauseAd, ad.ID)),
-				tgbotapi.NewInlineKeyboardButtonData(
-					"Finish", fmt.Sprintf("%s/%s", FinishAd, ad.ID)),
-			)
+			//buttons = append(buttons,
+			//	tgbotapi.NewInlineKeyboardButtonData(
+			//		"Pause", fmt.Sprintf("%s/%s", PauseAd, ad.ID)),
+			//	tgbotapi.NewInlineKeyboardButtonData(
+			//		"Finish", fmt.Sprintf("%s/%s", FinishAd, ad.ID)),
+			//)
 		}
 	}
 

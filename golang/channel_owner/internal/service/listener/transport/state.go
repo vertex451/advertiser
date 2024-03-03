@@ -9,6 +9,7 @@ import (
 type stateData struct {
 	crumbs          []transport.CallBackQueryParams
 	state           BotState
+	adChanID        string
 	channelID       int64
 	botDirectChatID int64
 	campaignID      string
@@ -23,6 +24,8 @@ func (s *Transport) handleStateQuery(update tgbotapi.Update) *tgbotapi.MessageCo
 	case StateEditTopics:
 		topics := strings.Split(update.Message.Text, ",")
 		return s.editChannelTopics(chatID, state.channelID, topics)
+	case StateWaitForRejectReason:
+		return s.saveRejectionReason(chatID, state.adChanID, update.Message.Text)
 	default:
 		return s.start(chatID)
 	}

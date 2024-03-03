@@ -26,3 +26,14 @@ func main() {
 		zap.S().Error("error deleting DI container", zap.Error(err))
 	}
 }
+
+//func test() {
+//	fmt.Println("test")
+//	c := cron.New()
+//
+//	// Start the cron scheduler
+//	c.Start()
+//
+//
+//
+//}

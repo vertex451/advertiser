@@ -25,6 +25,8 @@ func (s *Transport) NavigateToPage(params transport.CallBackQueryParams) *tgbota
 
 	case constants.AllTopics:
 		return s.allTopics(params.ChatID)
+	case Moderate:
+		return s.moderate(params.ChatID)
 	case MyChannels:
 		return s.listMyChannels(params.ChatID)
 	case ListChannelsTopics:

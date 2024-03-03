@@ -8,18 +8,18 @@ import (
 	"strings"
 )
 
-func (s *Transport) editTopicsPrompt(responseTo int64, rawChannelID string) *tgbotapi.MessageConfig {
+func (s *Transport) editTopicsPrompt(respondTo int64, rawChannelID string) *tgbotapi.MessageConfig {
 	channelID, err := strconv.ParseInt(rawChannelID, 10, 64)
 	if err != nil {
 		zap.L().Panic("failed to parse string to int64")
 	}
 
-	msg := tgbotapi.NewMessage(responseTo, fmt.Sprintf(`
+	msg := tgbotapi.NewMessage(respondTo, fmt.Sprintf(`
 Choose topics from the list:
 %s
 `, strings.Join(s.uc.AllTopics(), ", ")))
 
-	s.setState(responseTo, stateData{
+	s.setState(respondTo, stateData{
 		state:     StateEditTopics,
 		channelID: channelID,
 	})

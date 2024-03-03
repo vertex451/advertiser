@@ -6,7 +6,6 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"strings"
-	"time"
 )
 
 type UseCase struct {
@@ -35,13 +34,6 @@ func New(repo listener.Repo) *UseCase {
 			topics: topicMap,
 		},
 	}
-
-	go func() {
-		for {
-			uc.CheckForNewAds()
-			time.Sleep(30 * time.Second)
-		}
-	}()
 
 	return uc
 }

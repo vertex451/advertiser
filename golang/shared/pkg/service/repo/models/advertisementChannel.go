@@ -10,8 +10,8 @@ type AdChanStatus string
 
 const (
 	AdChanCreated           AdChanStatus = "created"
-	AdChanPosted            AdChanStatus = "posted"
 	AdChanWaitingToBePosted AdChanStatus = "waiting_to_be_posted"
+	AdChanPosted            AdChanStatus = "posted"
 	AdChanRejected          AdChanStatus = "rejected"
 	AdChanFinished          AdChanStatus = "finished"
 )
@@ -21,7 +21,8 @@ type AdvertisementChannel struct {
 	AdvertisementID uuid.UUID `gorm:"index:idx_advertisement_channel,unique"`
 	ChannelID       int64     `gorm:"index:idx_advertisement_channel,unique"`
 
-	Status AdChanStatus
+	Status          AdChanStatus
+	RejectionReason string
 
 	ChannelTitle   string
 	ChannelOwnerID int64
@@ -31,7 +32,8 @@ type AdvertisementChannel struct {
 	AdCostPerView float32
 
 	// stats
-	MessageID int
+	MessageID           int
+	DeletionScheduledAt time.Time
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

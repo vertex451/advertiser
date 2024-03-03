@@ -4,20 +4,12 @@ import (
 	"advertiser/shared/pkg/service/repo/models"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
 	"time"
 )
 
-func (s *Transport) RunNotificationService() {
-	go func() {
-		for {
-			s.NotifyAboutNewAds(models.AdChanCreated)
-			time.Sleep(30 * time.Second)
-		}
-	}()
-}
-
-func (s *Transport) NotifyAboutNewAds(status models.AdChanStatus) {
+func (s *Transport) NotifyChannelOwnersAboutNewAds(status models.AdChanStatus) {
 	res, err := s.uc.GetAdsChannelByStatus(status)
 	if err != nil {
 		return
@@ -38,31 +30,59 @@ Click on /%s to view them.
 	}
 }
 
-func (s *Transport) PostAdvertisement(advertisementChannelID string) error {
-	advertisementChannel, err := s.uc.GetAdChanDetails(advertisementChannelID)
+func (s *Transport) PostAdvertisement(adChanID string) error {
+	adChan, err := s.uc.GetAdChanDetails(adChanID)
 	if err != nil {
 		zap.L().Error("failed to get ad details", zap.Error(err))
 		return nil
 	}
 
 	postedMsg, err := s.tgBotApi.Send(tgbotapi.NewMessage(
-		advertisementChannel.ChannelID,
-		fmt.Sprintf("%s", advertisementChannel.AdMessage)),
+		adChan.ChannelID,
+		fmt.Sprintf("%s", adChan.AdMessage)),
 	)
 	if err != nil {
 		zap.L().Error("failed to post advertisement", zap.Error(err))
 		return err
 	}
 
-	err = s.uc.UpdateAdChanStatus(advertisementChannelID, models.AdChanPosted)
+	deleteAt := time.Now().Add(5 * time.Second)
+	err = s.ScheduleMsgDeletion(
+		adChanID,
+		adChan.ChannelID,
+		postedMsg.MessageID,
+		deleteAt,
+	)
 	if err != nil {
-		zap.L().Error("failed to update advertisement status", zap.Error(err))
+		zap.L().Error("failed to schedule message deletion", zap.Error(err))
+		return err
 	}
 
-	err = s.uc.SetAdChanMessageID(advertisementChannelID, postedMsg.MessageID)
+	err = s.uc.UpdateAdChanEntry(models.AdvertisementChannel{
+		ID:                  uuid.FromStringOrNil(adChanID),
+		Status:              models.AdChanPosted,
+		MessageID:           postedMsg.MessageID,
+		DeletionScheduledAt: deleteAt,
+	})
 	if err != nil {
 		zap.L().Error("failed to set message id", zap.Error(err))
 	}
 
 	return nil
+}
+
+func (s *Transport) DeleteAdvertisement(adChanID string, channelID int64, messageID int) {
+	editMessageConfig := tgbotapi.NewEditMessageText(channelID, messageID, "Advertisement has been deleted")
+	_, err := s.tgBotApi.Send(editMessageConfig)
+	if err != nil {
+		zap.L().Error("failed to delete advertisement", zap.Error(err))
+	}
+
+	err = s.uc.UpdateAdChanEntry(models.AdvertisementChannel{
+		ID:     uuid.FromStringOrNil(adChanID),
+		Status: models.AdChanFinished,
+	})
+	if err != nil {
+		zap.L().Error("failed to set message id", zap.Error(err))
+	}
 }

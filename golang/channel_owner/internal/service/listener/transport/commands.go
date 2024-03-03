@@ -7,6 +7,7 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"sort"
@@ -29,12 +30,16 @@ func (s *Transport) handleCommand(update tgbotapi.Update) *tgbotapi.MessageConfi
 func (s *Transport) start(respondTo int64) *tgbotapi.MessageConfig {
 	s.resetState(respondTo)
 
+	var buttons []tgbotapi.InlineKeyboardButton
+	buttons = append(buttons, tgbotapi.NewInlineKeyboardButtonData("My channels", fmt.Sprintf("%s", MyChannels)),
+		tgbotapi.NewInlineKeyboardButtonData("Moderation", fmt.Sprintf("%s", Moderate)),
+		tgbotapi.NewInlineKeyboardButtonData("All topics", fmt.Sprintf("%s", constants.AllTopics)),
+	)
+
 	msg := transport.AddNavigationButtons(
 		tgbotapi.NewMessage(respondTo, "Choose action:"),
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("List my channels with bot present", fmt.Sprintf("%s", MyChannels)),
-			tgbotapi.NewInlineKeyboardButtonData("List all topics", fmt.Sprintf("%s", constants.AllTopics)),
-		))
+		buttons,
+	)
 
 	return &msg
 }
@@ -96,7 +101,7 @@ func (s *Transport) listMyChannels(respondTo int64) *tgbotapi.MessageConfig {
 	return &msg
 }
 
-func (s *Transport) listChannelTopics(responseTo int64, rawChannelID string) *tgbotapi.MessageConfig {
+func (s *Transport) listChannelTopics(respondTo int64, rawChannelID string) *tgbotapi.MessageConfig {
 	channelID, err := strconv.ParseInt(rawChannelID, 10, 64)
 	if err != nil {
 		zap.L().Panic("failed to parse string to int64")
@@ -106,14 +111,14 @@ func (s *Transport) listChannelTopics(responseTo int64, rawChannelID string) *tg
 	channelInfo, err := s.uc.GetChannelInfo(channelID)
 	if err != nil {
 		zap.L().Error("failed to list channel topics", zap.Error(err))
-		msg = tgbotapi.NewMessage(responseTo, "failed to list channel topics")
+		msg = tgbotapi.NewMessage(respondTo, "failed to list channel topics")
 	} else {
 		var topics []string
 		for _, topic := range channelInfo.Topics {
 			topics = append(topics, topic.ID)
 		}
 		text := fmt.Sprintf("%s topics: %s", channelInfo.Title, strings.Join(topics, ", "))
-		msg = tgbotapi.NewMessage(responseTo, text)
+		msg = tgbotapi.NewMessage(respondTo, text)
 	}
 
 	buttons := tgbotapi.NewInlineKeyboardRow(
@@ -126,7 +131,7 @@ func (s *Transport) listChannelTopics(responseTo int64, rawChannelID string) *tg
 	return &msg
 }
 
-func (s *Transport) editChannelTopics(responseTo, channelID int64, topics []string) *tgbotapi.MessageConfig {
+func (s *Transport) editChannelTopics(respondTo, channelID int64, topics []string) *tgbotapi.MessageConfig {
 	s.resetState(channelID)
 
 	var msg tgbotapi.MessageConfig
@@ -139,10 +144,10 @@ func (s *Transport) editChannelTopics(responseTo, channelID int64, topics []stri
 	err := s.uc.UpdateChannelTopics(channelID, normalizedTopics)
 	if err != nil {
 		zap.L().Error("failed to update channel topics", zap.Error(err))
-		msg = tgbotapi.NewMessage(responseTo, fmt.Sprintf("failed to update channel topics. Error: %v", err))
+		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("failed to update channel topics. Error: %v", err))
 	} else {
 		text := fmt.Sprintf("Topics changed! New channel topics: %s", strings.Join(normalizedTopics, ", "))
-		msg = tgbotapi.NewMessage(responseTo, text)
+		msg = tgbotapi.NewMessage(respondTo, text)
 	}
 
 	msg = transport.AddNavigationButtons(msg, nil)
@@ -230,16 +235,42 @@ func (s *Transport) moderationDecision(respondTo int64, decision string, adChanI
 			msg = tgbotapi.NewMessage(respondTo, "Posted!")
 		}
 	case RejectAd:
-		err = s.uc.UpdateAdChanStatus(adChanID, models.AdChanRejected)
+		err = s.uc.UpdateAdChanEntry(models.AdvertisementChannel{
+			ID:     uuid.FromStringOrNil(adChanID),
+			Status: models.AdChanRejected,
+		})
 		if err != nil {
 			msg = tgbotapi.NewMessage(respondTo, "Failed to reject an advertisement")
 			zap.L().Error("failed to update advertisement status", zap.Error(err))
 		} else {
-			msg = tgbotapi.NewMessage(respondTo, "Rejected!")
+			s.setState(respondTo, stateData{
+				state:    StateWaitForRejectReason,
+				adChanID: adChanID,
+			})
+			msg = tgbotapi.NewMessage(respondTo, "Please provide a reason for rejection")
+
+			return &msg
 		}
 	}
 
 	msg = transport.AddNavigationButtons(msg, nil)
+
+	return &msg
+}
+
+func (s *Transport) saveRejectionReason(respondTo int64, adChanID, reason string) *tgbotapi.MessageConfig {
+	s.resetState(respondTo)
+	err := s.uc.UpdateAdChanEntry(models.AdvertisementChannel{
+		ID:              uuid.FromStringOrNil(adChanID),
+		RejectionReason: reason,
+	})
+	if err != nil {
+		zap.L().Error("failed to update advertisement status", zap.Error(err))
+	}
+
+	msg := transport.AddNavigationButtons(
+		tgbotapi.NewMessage(respondTo, "Thank you! We will review this."), nil,
+	)
 
 	return &msg
 }

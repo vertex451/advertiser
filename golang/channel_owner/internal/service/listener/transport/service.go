@@ -3,6 +3,7 @@ package transport
 import (
 	"advertiser/channel_owner/internal/service/listener"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 	"sync"
 )
@@ -13,17 +14,26 @@ type Transport struct {
 	updateConfig tgbotapi.UpdateConfig
 	state        sync.Map // map[ChatID]stateData
 	lastMsgID    int
+	cron         *cron.Cron
 }
 
 func New(uc listener.UseCase, tgBotApi *tgbotapi.BotAPI) *Transport {
 	updateConfig := tgbotapi.NewUpdate(0)
 	updateConfig.Timeout = 30
 
+	c := cron.New()
+	c.Start()
+
 	return &Transport{
 		tgBotApi:     tgBotApi,
 		updateConfig: updateConfig,
 		uc:           uc,
+		cron:         c,
 	}
+}
+
+func (s *Transport) Run() {
+	go s.MonitorChannels()
 }
 
 func (s *Transport) MonitorChannels() {

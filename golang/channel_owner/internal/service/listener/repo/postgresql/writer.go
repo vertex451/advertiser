@@ -61,14 +61,8 @@ func (r *Repository) GetAdsChannelByStatus(status models.AdChanStatus) (res []mo
 	return res, nil
 }
 
-func (r *Repository) UpdateAdChanStatus(adChannelID string, status models.AdChanStatus) error {
+func (r *Repository) UpdateAdChanEntry(channel models.AdvertisementChannel) error {
 	return r.Db.Model(&models.AdvertisementChannel{}).
-		Where("id = ?", adChannelID).
-		Update("status", status).Error
-}
-
-func (r *Repository) SetAdChanMessageID(adChanID string, msgID int) error {
-	return r.Db.Model(&models.AdvertisementChannel{}).
-		Where("id = ?", adChanID).
-		Update("message_id", msgID).Error
+		Where("id = ?", channel.ID).
+		Updates(channel).Error
 }

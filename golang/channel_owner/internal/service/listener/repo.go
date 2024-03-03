@@ -22,12 +22,11 @@ type RepoListener interface {
 	GetAdsToModerateByUserID(id int64) ([]models.AdvertisementChannel, error)
 
 	GetAdChanDetails(id string) (*models.AdvertisementChannel, error)
-	SetAdChanMessageID(adChanID string, msgID int) error
 }
 
 type RepoNotification interface {
 	GetAdsOnModeration() (res []models.AdvertisementChannel, err error)
 	CreateAdvertisementChannelEntries(ads []models.AdvertisementChannel)
 	GetAdsChannelByStatus(status models.AdChanStatus) (res []models.AdvertisementChannel, err error)
-	UpdateAdChanStatus(adChannelID string, status models.AdChanStatus) error
+	UpdateAdChanEntry(channel models.AdvertisementChannel) error
 }

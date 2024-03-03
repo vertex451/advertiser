@@ -31,10 +31,6 @@ func (uc *UseCase) GetAdsChannelByStatus(status models.AdChanStatus) (map[int64]
 	return m, nil
 }
 
-func (uc *UseCase) UpdateAdChanStatus(adChannelID string, status models.AdChanStatus) error {
-	return uc.repo.UpdateAdChanStatus(adChannelID, status)
-}
-
-func (uc *UseCase) SetAdChanMessageID(adChanID string, msgID int) error {
-	return uc.repo.SetAdChanMessageID(adChanID, msgID)
+func (uc *UseCase) UpdateAdChanEntry(channel models.AdvertisementChannel) error {
+	return uc.repo.UpdateAdChanEntry(channel)
 }

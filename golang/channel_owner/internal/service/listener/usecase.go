@@ -23,8 +23,7 @@ type Listener interface {
 
 	GetAdChanDetails(id string) (*models.AdvertisementChannel, error)
 
-	UpdateAdChanStatus(adChannelID string, status models.AdChanStatus) error
-	SetAdChanMessageID(adChanID string, msgID int) error
+	UpdateAdChanEntry(channel models.AdvertisementChannel) error
 }
 
 type Writer interface {
