@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"advertiser/shared/pkg/service/transport"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
@@ -8,7 +9,7 @@ import (
 	"strings"
 )
 
-func (s *Transport) editTopicsPrompt(respondTo int64, rawChannelID string) *tgbotapi.MessageConfig {
+func (s *Transport) editTopicsPrompt(respondTo int64, rawChannelID string) *transport.Msg {
 	channelID, err := strconv.ParseInt(rawChannelID, 10, 64)
 	if err != nil {
 		zap.L().Panic("failed to parse string to int64")
@@ -24,5 +25,7 @@ Choose topics from the list:
 		channelID: channelID,
 	})
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }

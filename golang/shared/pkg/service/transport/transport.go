@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+type Msg struct {
+	SkipDeletion bool
+	Msg          tgbotapi.MessageConfig
+}
+
 type CallBackQueryParams struct {
 	ChatID   int64
 	Page     string

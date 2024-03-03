@@ -2,6 +2,7 @@ package transport
 
 import (
 	"advertiser/shared/pkg/service/repo/models"
+	"advertiser/shared/pkg/service/transport"
 	"fmt"
 	"go.uber.org/zap"
 
@@ -13,7 +14,7 @@ const (
 	StatusLeft          = "left"
 )
 
-func (s *Transport) handleUpdateEvent(update tgbotapi.Update) *tgbotapi.MessageConfig {
+func (s *Transport) handleUpdateEvent(update tgbotapi.Update) *transport.Msg {
 	switch update.MyChatMember.NewChatMember.Status {
 	case StatusAdministrator:
 		return s.botIsAddedToAdmins(update.MyChatMember)
@@ -24,12 +25,14 @@ func (s *Transport) handleUpdateEvent(update tgbotapi.Update) *tgbotapi.MessageC
 	return nil
 }
 
-func (s *Transport) botIsAddedToAdmins(myChatMember *tgbotapi.ChatMemberUpdated) *tgbotapi.MessageConfig {
+func (s *Transport) botIsAddedToAdmins(myChatMember *tgbotapi.ChatMemberUpdated) *transport.Msg {
 	var err error
 	var msg tgbotapi.MessageConfig
 	if !myChatMember.NewChatMember.CanPostMessages {
 		msg = tgbotapi.NewMessage(myChatMember.From.ID, fmt.Sprintf("Advertiser bot doesn's have needed permissions in channel %s.", myChatMember.Chat.Title))
-		return &msg
+		return &transport.Msg{
+			Msg: msg,
+		}
 	}
 
 	admins, err := s.tgBotApi.GetChatAdministrators(tgbotapi.ChatAdministratorsConfig{
@@ -44,7 +47,9 @@ func (s *Transport) botIsAddedToAdmins(myChatMember *tgbotapi.ChatMemberUpdated)
 			fmt.Sprintf("Failed to get admin list for %s, please check bots permissions", myChatMember.Chat.Title),
 		)
 
-		return &msg
+		return &transport.Msg{
+			Msg: msg,
+		}
 	}
 
 	membersCount, err := s.tgBotApi.GetChatMembersCount(tgbotapi.ChatMemberCountConfig{
@@ -55,7 +60,9 @@ func (s *Transport) botIsAddedToAdmins(myChatMember *tgbotapi.ChatMemberUpdated)
 	if err != nil {
 		zap.L().Error("failed to get members count", zap.Error(err))
 		msg = tgbotapi.NewMessage(myChatMember.From.ID, fmt.Sprintf("Failed to get members count"))
-		return &msg
+		return &transport.Msg{
+			Msg: msg,
+		}
 	}
 
 	err = s.uc.StoreInitialChannelData(admins, models.Channel{
@@ -73,10 +80,12 @@ func (s *Transport) botIsAddedToAdmins(myChatMember *tgbotapi.ChatMemberUpdated)
 
 	msg = tgbotapi.NewMessage(myChatMember.From.ID, fmt.Sprintf("Advertiser bot was successfully added to %s", myChatMember.Chat.Title))
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
-func (s *Transport) botIsRemovedFromAdmins(myChatMember *tgbotapi.ChatMemberUpdated) *tgbotapi.MessageConfig {
+func (s *Transport) botIsRemovedFromAdmins(myChatMember *tgbotapi.ChatMemberUpdated) *transport.Msg {
 	var msg tgbotapi.MessageConfig
 	err := s.uc.DeleteChannel(myChatMember.Chat.ID)
 	if err != nil {
@@ -87,5 +96,7 @@ func (s *Transport) botIsRemovedFromAdmins(myChatMember *tgbotapi.ChatMemberUpda
 		msg = tgbotapi.NewMessage(myChatMember.From.ID, fmt.Sprintf("Advertiser bot is removed from %s", myChatMember.Chat.Title))
 	}
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }

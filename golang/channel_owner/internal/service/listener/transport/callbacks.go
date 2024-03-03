@@ -6,7 +6,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func (s *Transport) handleCallbackQuery(query *tgbotapi.CallbackQuery) *tgbotapi.MessageConfig {
+func (s *Transport) handleCallbackQuery(query *tgbotapi.CallbackQuery) *transport.Msg {
 	params := transport.ParseCallBackQuery(query)
 
 	if params.Page != constants.Back {
@@ -16,7 +16,7 @@ func (s *Transport) handleCallbackQuery(query *tgbotapi.CallbackQuery) *tgbotapi
 	return s.NavigateToPage(params)
 }
 
-func (s *Transport) NavigateToPage(params transport.CallBackQueryParams) *tgbotapi.MessageConfig {
+func (s *Transport) NavigateToPage(params transport.CallBackQueryParams) *transport.Msg {
 	switch params.Page {
 	case constants.Start:
 		return s.start(params.ChatID)
@@ -33,7 +33,6 @@ func (s *Transport) NavigateToPage(params transport.CallBackQueryParams) *tgbota
 		return s.listChannelTopics(params.ChatID, params.Variable)
 	case EditChannelsTopics:
 		return s.editTopicsPrompt(params.ChatID, params.Variable)
-
 	case ModerateDetails:
 		return s.GetAdvertisementDetails(params.ChatID, params.Variable)
 	case PostNow:

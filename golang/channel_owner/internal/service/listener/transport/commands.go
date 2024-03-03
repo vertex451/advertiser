@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-func (s *Transport) handleCommand(update tgbotapi.Update) *tgbotapi.MessageConfig {
+func (s *Transport) handleCommand(update tgbotapi.Update) *transport.Msg {
 	switch update.Message.Command() {
 	case constants.Start:
 		return s.start(update.Message.Chat.ID)
@@ -27,7 +27,7 @@ func (s *Transport) handleCommand(update tgbotapi.Update) *tgbotapi.MessageConfi
 	return nil
 }
 
-func (s *Transport) start(respondTo int64) *tgbotapi.MessageConfig {
+func (s *Transport) start(respondTo int64) *transport.Msg {
 	s.resetState(respondTo)
 
 	var buttons []tgbotapi.InlineKeyboardButton
@@ -41,10 +41,12 @@ func (s *Transport) start(respondTo int64) *tgbotapi.MessageConfig {
 		buttons,
 	)
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
-func (s *Transport) back(respondTo int64) *tgbotapi.MessageConfig {
+func (s *Transport) back(respondTo int64) *transport.Msg {
 	state := s.getState(respondTo)
 	if len(state.crumbs) <= 1 {
 		return s.start(respondTo)
@@ -58,7 +60,7 @@ func (s *Transport) back(respondTo int64) *tgbotapi.MessageConfig {
 	return s.NavigateToPage(params)
 }
 
-func (s *Transport) allTopics(respondTo int64) *tgbotapi.MessageConfig {
+func (s *Transport) allTopics(respondTo int64) *transport.Msg {
 	var msg tgbotapi.MessageConfig
 	msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf(`
 Supported topics:
@@ -66,10 +68,12 @@ Supported topics:
 `, strings.Join(s.uc.AllTopics(), ", ")))
 	msg = transport.AddNavigationButtons(msg, nil)
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
-func (s *Transport) listMyChannels(respondTo int64) *tgbotapi.MessageConfig {
+func (s *Transport) listMyChannels(respondTo int64) *transport.Msg {
 	var msg tgbotapi.MessageConfig
 	myChannels, err := s.uc.ListMyChannels(respondTo)
 	if err != nil {
@@ -82,7 +86,9 @@ func (s *Transport) listMyChannels(respondTo int64) *tgbotapi.MessageConfig {
 
 		msg = transport.AddNavigationButtons(msg, nil)
 
-		return &msg
+		return &transport.Msg{
+			Msg: msg,
+		}
 	}
 
 	var channelButtons []tgbotapi.InlineKeyboardButton
@@ -98,10 +104,12 @@ func (s *Transport) listMyChannels(respondTo int64) *tgbotapi.MessageConfig {
 	msg = tgbotapi.NewMessage(respondTo, "Select a channel:")
 	msg = transport.AddNavigationButtons(msg, channelButtons)
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
-func (s *Transport) listChannelTopics(respondTo int64, rawChannelID string) *tgbotapi.MessageConfig {
+func (s *Transport) listChannelTopics(respondTo int64, rawChannelID string) *transport.Msg {
 	channelID, err := strconv.ParseInt(rawChannelID, 10, 64)
 	if err != nil {
 		zap.L().Panic("failed to parse string to int64")
@@ -128,10 +136,12 @@ func (s *Transport) listChannelTopics(respondTo int64, rawChannelID string) *tgb
 	)
 	msg = transport.AddNavigationButtons(msg, buttons)
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
-func (s *Transport) editChannelTopics(respondTo, channelID int64, topics []string) *tgbotapi.MessageConfig {
+func (s *Transport) editChannelTopics(respondTo, channelID int64, topics []string) *transport.Msg {
 	s.resetState(channelID)
 
 	var msg tgbotapi.MessageConfig
@@ -152,10 +162,13 @@ func (s *Transport) editChannelTopics(respondTo, channelID int64, topics []strin
 
 	msg = transport.AddNavigationButtons(msg, nil)
 
-	return &msg
+	return &transport.Msg{
+		SkipDeletion: true,
+		Msg:          msg,
+	}
 }
 
-func (s *Transport) moderate(id int64) *tgbotapi.MessageConfig {
+func (s *Transport) moderate(id int64) *transport.Msg {
 	ads, err := s.uc.GetAdsToModerateByUserID(id)
 	if err != nil {
 		zap.L().Error("failed to get ads to moderate", zap.Error(err))
@@ -180,10 +193,12 @@ func (s *Transport) moderate(id int64) *tgbotapi.MessageConfig {
 
 	msg = transport.AddNavigationButtons(msg, channelButtons)
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
-func (s *Transport) GetAdvertisementDetails(chatID int64, advertisementChannelID string) *tgbotapi.MessageConfig {
+func (s *Transport) GetAdvertisementDetails(chatID int64, advertisementChannelID string) *transport.Msg {
 	advertisementChannel, err := s.uc.GetAdChanDetails(advertisementChannelID)
 	if err != nil {
 		zap.L().Error("failed to get ad details", zap.Error(err))
@@ -219,10 +234,12 @@ Advertisement details:
 
 	msg = transport.AddNavigationButtons(msg, channelButtons)
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
-func (s *Transport) moderationDecision(respondTo int64, decision string, adChanID string) *tgbotapi.MessageConfig {
+func (s *Transport) moderationDecision(respondTo int64, decision string, adChanID string) *transport.Msg {
 	var err error
 	var msg tgbotapi.MessageConfig
 
@@ -249,16 +266,20 @@ func (s *Transport) moderationDecision(respondTo int64, decision string, adChanI
 			})
 			msg = tgbotapi.NewMessage(respondTo, "Please provide a reason for rejection")
 
-			return &msg
+			return &transport.Msg{
+				Msg: msg,
+			}
 		}
 	}
 
 	msg = transport.AddNavigationButtons(msg, nil)
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
-func (s *Transport) saveRejectionReason(respondTo int64, adChanID, reason string) *tgbotapi.MessageConfig {
+func (s *Transport) saveRejectionReason(respondTo int64, adChanID, reason string) *transport.Msg {
 	s.resetState(respondTo)
 	err := s.uc.UpdateAdChanEntry(models.AdvertisementChannel{
 		ID:              uuid.FromStringOrNil(adChanID),
@@ -272,5 +293,7 @@ func (s *Transport) saveRejectionReason(respondTo int64, adChanID, reason string
 		tgbotapi.NewMessage(respondTo, "Thank you! We will review this."), nil,
 	)
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
