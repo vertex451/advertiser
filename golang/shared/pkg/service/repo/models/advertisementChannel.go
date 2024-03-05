@@ -25,6 +25,7 @@ type AdvertisementChannel struct {
 	RejectionReason string
 
 	ChannelTitle   string
+	ChannelHandle  string
 	ChannelOwnerID int64
 
 	AdName        string

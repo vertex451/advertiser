@@ -13,11 +13,11 @@ func (uc *UseCase) CheckForNewAds() {
 	}
 
 	// create new entries in advertisement_channel table
-	uc.repo.CreateAdvertisementChannelEntries(adsReadyToPost)
+	uc.repo.CreateAdChanEntries(adsReadyToPost)
 }
 
 func (uc *UseCase) GetAdsChannelByStatus(status models.AdChanStatus) (map[int64][]models.AdvertisementChannel, error) {
-	res, err := uc.repo.GetAdsChannelByStatus(status)
+	res, err := uc.repo.GetAdChannelByStatus(status)
 	if err != nil {
 		zap.L().Error("failed to get advertisement channel by status", zap.Error(err))
 		return nil, err
@@ -33,4 +33,12 @@ func (uc *UseCase) GetAdsChannelByStatus(status models.AdChanStatus) (map[int64]
 
 func (uc *UseCase) UpdateAdChanEntry(channel models.AdvertisementChannel) error {
 	return uc.repo.UpdateAdChanEntry(channel)
+}
+
+func (uc *UseCase) GetRunningAdvertisements() ([]*models.Advertisement, error) {
+	return uc.repo.GetRunningAds()
+}
+
+func (uc *UseCase) UpdateAd(ad models.Advertisement) error {
+	return uc.repo.UpdateAd(ad)
 }

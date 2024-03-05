@@ -3,6 +3,7 @@ package transport
 import (
 	"advertiser/channel_owner/internal/service/listener"
 	"advertiser/shared/pkg/service/transport"
+	"advertiser/shared/telegram_api"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
@@ -15,6 +16,7 @@ type Transport struct {
 	updateConfig tgbotapi.UpdateConfig
 	state        sync.Map // map[ChatID]stateData
 	cron         *cron.Cron
+	tgApi        *telegram_api.Service
 }
 
 func New(uc listener.UseCase, tgBotApi *tgbotapi.BotAPI) *Transport {
@@ -29,6 +31,7 @@ func New(uc listener.UseCase, tgBotApi *tgbotapi.BotAPI) *Transport {
 		updateConfig: updateConfig,
 		uc:           uc,
 		cron:         c,
+		tgApi:        telegram_api.New(),
 	}
 }
 
@@ -48,11 +51,11 @@ func (s *Transport) MonitorChannels() {
 			continue
 		}
 
-		chatID = getChatID(update)
+		chatID = transport.GetChatID(update)
 
 		state = s.getState(chatID)
 		if !responseMessage.SkipDeletion && state.lastMsgID != 0 {
-			deleteMsg := tgbotapi.NewDeleteMessage(TgBotDirectChatID, state.lastMsgID)
+			deleteMsg := tgbotapi.NewDeleteMessage(chatID, state.lastMsgID)
 			s.tgBotApi.Send(deleteMsg)
 		}
 
@@ -87,22 +90,6 @@ func (s *Transport) handleUpdate(update tgbotapi.Update) *transport.Msg {
 	}
 
 	return nil
-}
-
-func getChatID(update tgbotapi.Update) int64 {
-	if update.Message != nil {
-		return update.Message.Chat.ID
-	}
-
-	if update.CallbackQuery != nil {
-		return update.CallbackQuery.Message.Chat.ID
-	}
-
-	if update.MyChatMember != nil {
-		return update.MyChatMember.Chat.ID
-	}
-
-	return 0
 }
 
 // Added bot by admin to channel

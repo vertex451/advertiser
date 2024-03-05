@@ -6,27 +6,28 @@ import (
 )
 
 type Repo interface {
-	RepoListener
-	RepoNotification
-}
-
-type RepoListener interface {
 	AllTopics() ([]string, error)
-	StoreInitialChannelData(admins []tgbotapi.ChatMember, chat models.Channel) error
-	DeleteChannel(chatID int64) error
 
-	ListMyChannels(userID int64) (map[int64]string, error)
-	GetChannelInfo(channelID int64) (channel *models.Channel, err error)
-	UpdateChannelTopics(channelID int64, topics []string) (err error)
-
-	GetAdsToModerateByUserID(id int64) ([]models.AdvertisementChannel, error)
-
-	GetAdChanDetails(id string) (*models.AdvertisementChannel, error)
+	Channel
+	Advertisement
 }
 
-type RepoNotification interface {
+type Channel interface {
+	StoreInitialChannelData(admins []tgbotapi.ChatMember, chat models.Channel) error
+	UpdateChannelTopics(channelID int64, topics []string) (err error)
+	GetChannelInfo(channelID int64) (channel *models.Channel, err error)
+	ListMyChannels(userID int64) (map[int64]string, error)
+	DeleteChannel(chatID int64) error
+}
+
+type Advertisement interface {
+	UpdateAd(ad models.Advertisement) error
 	GetAdsOnModeration() (res []models.AdvertisementChannel, err error)
-	CreateAdvertisementChannelEntries(ads []models.AdvertisementChannel)
-	GetAdsChannelByStatus(status models.AdChanStatus) (res []models.AdvertisementChannel, err error)
+	GetAdsToModerateByUserID(id int64) ([]models.AdvertisementChannel, error)
+	GetRunningAds() ([]*models.Advertisement, error)
+
+	CreateAdChanEntries(ads []models.AdvertisementChannel)
 	UpdateAdChanEntry(channel models.AdvertisementChannel) error
+	GetAdChanDetails(id string) (*models.AdvertisementChannel, error)
+	GetAdChannelByStatus(status models.AdChanStatus) (res []models.AdvertisementChannel, err error)
 }

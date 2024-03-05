@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func (t *Transport) allTopicsWithCoverage(respondTo int64) *tgbotapi.MessageConfig {
+func (t *Transport) allTopicsWithCoverage(respondTo int64) *transport.Msg {
 	var msg tgbotapi.MessageConfig
 	topics, err := t.uc.AllTopicsWithCoverage()
 	if err != nil {
@@ -31,10 +31,12 @@ func (t *Transport) allTopicsWithCoverage(respondTo int64) *tgbotapi.MessageConf
 
 	msg = transport.AddNavigationButtons(msg, nil)
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
-func (t *Transport) createCampaign(respondTo int64, campaignName string) *tgbotapi.MessageConfig {
+func (t *Transport) createCampaign(respondTo int64, campaignName string) *transport.Msg {
 	t.resetState(respondTo)
 
 	var msg tgbotapi.MessageConfig
@@ -52,10 +54,12 @@ func (t *Transport) createCampaign(respondTo int64, campaignName string) *tgbota
 		))
 	}
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
-func (t *Transport) listMyCampaigns(respondTo int64) *tgbotapi.MessageConfig {
+func (t *Transport) listMyCampaigns(respondTo int64) *transport.Msg {
 	var msg tgbotapi.MessageConfig
 	myCampaigns, err := t.uc.ListMyCampaigns(respondTo)
 	if err != nil {
@@ -68,7 +72,9 @@ func (t *Transport) listMyCampaigns(respondTo int64) *tgbotapi.MessageConfig {
 
 		msg = transport.AddNavigationButtons(msg, nil)
 
-		return &msg
+		return &transport.Msg{
+			Msg: msg,
+		}
 	}
 
 	var buttons []tgbotapi.InlineKeyboardButton
@@ -90,10 +96,12 @@ func (t *Transport) listMyCampaigns(respondTo int64) *tgbotapi.MessageConfig {
 
 	msg = transport.AddNavigationButtons(msg, buttons)
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
-func (t *Transport) campaignDetails(respondTo int64, rawCampaignID string) *tgbotapi.MessageConfig {
+func (t *Transport) campaignDetails(respondTo int64, rawCampaignID string) *transport.Msg {
 	var msg tgbotapi.MessageConfig
 
 	campaignID, err := uuid.FromString(rawCampaignID)
@@ -102,7 +110,9 @@ func (t *Transport) campaignDetails(respondTo int64, rawCampaignID string) *tgbo
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to read campaignID. Error: %v", err))
 		msg = transport.AddNavigationButtons(msg, nil)
 
-		return &msg
+		return &transport.Msg{
+			Msg: msg,
+		}
 	}
 
 	campaignDetails, err := t.uc.CampaignDetails(campaignID)
@@ -111,7 +121,9 @@ func (t *Transport) campaignDetails(respondTo int64, rawCampaignID string) *tgbo
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to create an Ad. Error: %v", err))
 		msg = transport.AddNavigationButtons(msg, nil)
 
-		return &msg
+		return &transport.Msg{
+			Msg: msg,
+		}
 	}
 
 	var buttons []tgbotapi.InlineKeyboardButton
@@ -135,10 +147,12 @@ func (t *Transport) campaignDetails(respondTo int64, rawCampaignID string) *tgbo
 
 	msg = transport.AddNavigationButtons(msg, buttons)
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
-func (t *Transport) upsertAd(respondTo int64, campaignID, adID, input string) *tgbotapi.MessageConfig {
+func (t *Transport) upsertAd(respondTo int64, campaignID, adID, input string) *transport.Msg {
 	t.resetState(respondTo)
 
 	var msg tgbotapi.MessageConfig
@@ -148,7 +162,9 @@ func (t *Transport) upsertAd(respondTo int64, campaignID, adID, input string) *t
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to create an Ad. Error: %v", err))
 		msg = transport.AddNavigationButtons(msg, nil)
 
-		return &msg
+		return &transport.Msg{
+			Msg: msg,
+		}
 	}
 
 	_, err = t.uc.UpsertAd(*ad)
@@ -165,10 +181,12 @@ func (t *Transport) upsertAd(respondTo int64, campaignID, adID, input string) *t
 
 	msg = transport.AddNavigationButtons(msg, nil)
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
-func (t *Transport) GetAdDetails(respondTo int64, rawID string) *tgbotapi.MessageConfig {
+func (t *Transport) GetAdDetails(respondTo int64, rawID string) *transport.Msg {
 	var msg tgbotapi.MessageConfig
 
 	id, err := uuid.FromString(rawID)
@@ -177,7 +195,9 @@ func (t *Transport) GetAdDetails(respondTo int64, rawID string) *tgbotapi.Messag
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to parse advertisement id. Error: %v", err))
 		msg = transport.AddNavigationButtons(msg, nil)
 
-		return &msg
+		return &transport.Msg{
+			Msg: msg,
+		}
 	}
 
 	var buttons []tgbotapi.InlineKeyboardButton
@@ -223,11 +243,12 @@ Estimated coverage: %v
 
 	msg = transport.AddNavigationButtons(msg, buttons)
 
-	return &msg
-
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
-func (t *Transport) RunAd(respondTo int64, rawID string) *tgbotapi.MessageConfig {
+func (t *Transport) RunAd(respondTo int64, rawID string) *transport.Msg {
 	var msg tgbotapi.MessageConfig
 
 	id, err := uuid.FromString(rawID)
@@ -236,7 +257,9 @@ func (t *Transport) RunAd(respondTo int64, rawID string) *tgbotapi.MessageConfig
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to parse advertisement id. Error: %v", err))
 		msg = transport.AddNavigationButtons(msg, nil)
 
-		return &msg
+		return &transport.Msg{
+			Msg: msg,
+		}
 	}
 
 	var buttons []tgbotapi.InlineKeyboardButton
@@ -250,8 +273,9 @@ func (t *Transport) RunAd(respondTo int64, rawID string) *tgbotapi.MessageConfig
 
 	msg = transport.AddNavigationButtons(msg, buttons)
 
-	return &msg
-
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
 func parseAndValidateCreateAdInput(rawCampaignID, rawAdID, rawInput string) (*models.Advertisement, error) {

@@ -213,7 +213,7 @@ func (s *Transport) GetAdvertisementDetails(chatID int64, advertisementChannelID
 Target channel: %s
 Advertisement details:
 - Name: %s
-- Cost per view: %v
+- Cost per view: %v USD
 - Message: %s
 `,
 		advertisementChannel.ChannelTitle,

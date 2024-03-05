@@ -1,11 +1,12 @@
 package transport
 
 import (
+	"advertiser/shared/pkg/service/transport"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func (t *Transport) createCampaignPrompt(respondTo int64) *tgbotapi.MessageConfig {
+func (t *Transport) createCampaignPrompt(respondTo int64) *transport.Msg {
 	msg := tgbotapi.NewMessage(respondTo, "Send new campaign name:")
 
 	t.setState(respondTo, stateData{
@@ -13,10 +14,12 @@ func (t *Transport) createCampaignPrompt(respondTo int64) *tgbotapi.MessageConfi
 		botDirectChatID: respondTo,
 	})
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }
 
-func (t *Transport) upsertAdPrompt(respondTo int64, variable string, state BotState) *tgbotapi.MessageConfig {
+func (t *Transport) upsertAdPrompt(respondTo int64, variable string, state BotState) *transport.Msg {
 	var msg tgbotapi.MessageConfig
 	var action string
 	switch state {
@@ -44,5 +47,7 @@ Message: Follow this [link](https://www.investing.com/) to find more about inves
 `, action)
 	msg = tgbotapi.NewMessage(respondTo, promptText)
 
-	return &msg
+	return &transport.Msg{
+		Msg: msg,
+	}
 }

@@ -24,9 +24,11 @@ type Listener interface {
 	GetAdChanDetails(id string) (*models.AdvertisementChannel, error)
 
 	UpdateAdChanEntry(channel models.AdvertisementChannel) error
+	UpdateAd(ad models.Advertisement) error
 }
 
 type Writer interface {
 	CheckForNewAds()
 	GetAdsChannelByStatus(status models.AdChanStatus) (map[int64][]models.AdvertisementChannel, error)
+	GetRunningAdvertisements() ([]*models.Advertisement, error)
 }

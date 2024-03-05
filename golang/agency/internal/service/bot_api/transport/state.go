@@ -6,6 +6,7 @@ import (
 )
 
 type stateData struct {
+	lastMsgID       int
 	crumbs          []transport.CallBackQueryParams
 	state           BotState
 	channelID       int64
@@ -14,7 +15,7 @@ type stateData struct {
 	adID            string
 }
 
-func (t *Transport) handleStateQuery(update tgbotapi.Update) *tgbotapi.MessageConfig {
+func (t *Transport) handleStateQuery(update tgbotapi.Update) *transport.Msg {
 	chatID := update.Message.Chat.ID
 	state := t.getState(chatID)
 
@@ -48,8 +49,10 @@ func (t *Transport) getState(chatID int64) stateData {
 }
 
 func (t *Transport) resetState(chatID int64) {
+	state := t.getState(chatID)
 	t.state.Store(chatID, stateData{
-		state: StateStart,
+		state:     StateStart,
+		lastMsgID: state.lastMsgID,
 	})
 }
 

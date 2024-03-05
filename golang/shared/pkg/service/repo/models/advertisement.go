@@ -29,9 +29,11 @@ type Advertisement struct {
 
 	Budget      int
 	CostPerView float32
+	TotalViews  int
+	TotalCost   float32
 
 	// statistics
-	//AdsChannel []*AdvertisementChannel `gorm:"many2many:advertisement_channels;"`
+	AdsChannel []AdvertisementChannel `gorm:"foreignKey:AdvertisementID"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

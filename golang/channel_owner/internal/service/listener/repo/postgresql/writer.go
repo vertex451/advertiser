@@ -8,7 +8,7 @@ import (
 
 func (r *Repository) GetAdsOnModeration() (res []models.AdvertisementChannel, err error) {
 	err = r.Db.Raw(`
-SELECT c.id as channel_id, c.title as channel_title, 
+SELECT c.id as channel_id, c.title as channel_title, c.handle as channel_handle,
        ca.user_id as channel_owner_id, 
        ads.id as advertisement_id, ads.name as ad_name,  
        ads.message as ad_message, ads.cost_per_view as ad_cost_per_view
@@ -28,7 +28,7 @@ GROUP BY c.id, ca.user_id, ads.message, ads.id;
 	return res, nil
 }
 
-func (r *Repository) CreateAdvertisementChannelEntries(ads []models.AdvertisementChannel) {
+func (r *Repository) CreateAdChanEntries(ads []models.AdvertisementChannel) {
 	var err error
 	success := make(map[uuid.UUID]struct{})
 	for _, entry := range ads {
@@ -51,7 +51,7 @@ func (r *Repository) CreateAdvertisementChannelEntries(ads []models.Advertisemen
 	}
 }
 
-func (r *Repository) GetAdsChannelByStatus(status models.AdChanStatus) (res []models.AdvertisementChannel, err error) {
+func (r *Repository) GetAdChannelByStatus(status models.AdChanStatus) (res []models.AdvertisementChannel, err error) {
 	err = r.Db.Where("status = ?", status).Find(&res).Error
 	if err != nil {
 		zap.L().Error("failed to get advertisement channel by status", zap.Error(err))
@@ -65,4 +65,20 @@ func (r *Repository) UpdateAdChanEntry(channel models.AdvertisementChannel) erro
 	return r.Db.Model(&models.AdvertisementChannel{}).
 		Where("id = ?", channel.ID).
 		Updates(channel).Error
+}
+
+func (r *Repository) GetRunningAds() (res []*models.Advertisement, err error) {
+	err = r.Db.Preload("AdsChannel").Where("status = ?", models.AdsStatusRunning).Find(&res).Error
+	if err != nil {
+		zap.L().Error("failed to get running advertisements", zap.Error(err))
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (r *Repository) UpdateAd(ad models.Advertisement) error {
+	return r.Db.Model(&models.Advertisement{}).
+		Where("id = ?", ad.ID).
+		Updates(ad).Error
 }

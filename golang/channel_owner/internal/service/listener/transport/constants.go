@@ -1,11 +1,9 @@
 package transport
 
-const (
-	TgBotDirectChatID int64 = 6406834985
-)
-
 // Commands:
 const (
+	ChannelMonetizerBotName = "channel_monetizer_bot"
+
 	EditChannelsTopics = "edit_channel_topics"
 	ListChannelsTopics = "list_channels_topics"
 	MyChannels         = "my_channels"

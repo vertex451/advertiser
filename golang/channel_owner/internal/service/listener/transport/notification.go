@@ -47,7 +47,7 @@ func (s *Transport) PostAdvertisement(adChanID string) error {
 	}
 
 	deleteAt := time.Now().Add(5 * time.Second)
-	err = s.ScheduleMsgDeletion(
+	err = s.ScheduleMsgDeletionAtTime(
 		adChanID,
 		adChan.ChannelID,
 		postedMsg.MessageID,
@@ -71,11 +71,16 @@ func (s *Transport) PostAdvertisement(adChanID string) error {
 	return nil
 }
 
-func (s *Transport) DeleteAdvertisement(adChanID string, channelID int64, messageID int) {
-	editMessageConfig := tgbotapi.NewEditMessageText(channelID, messageID, "Advertisement has been deleted")
+func (s *Transport) DeleteAdvertisement(adChanID string, channelID int64, messageID int) error {
+	editMessageConfig := tgbotapi.NewEditMessageText(channelID, messageID,
+		fmt.Sprintf(`
+Advertisement is finished. 
+Check out our @%s bot to monetize your channel!`, ChannelMonetizerBotName),
+	)
 	_, err := s.tgBotApi.Send(editMessageConfig)
 	if err != nil {
 		zap.L().Error("failed to delete advertisement", zap.Error(err))
+		return err
 	}
 
 	err = s.uc.UpdateAdChanEntry(models.AdvertisementChannel{
@@ -84,5 +89,8 @@ func (s *Transport) DeleteAdvertisement(adChanID string, channelID int64, messag
 	})
 	if err != nil {
 		zap.L().Error("failed to set message id", zap.Error(err))
+		return err
 	}
+
+	return nil
 }

@@ -53,3 +53,19 @@ func AddNavigationButtons(msg tgbotapi.MessageConfig, buttons []tgbotapi.InlineK
 
 	return msg
 }
+
+func GetChatID(update tgbotapi.Update) int64 {
+	if update.Message != nil {
+		return update.Message.Chat.ID
+	}
+
+	if update.CallbackQuery != nil {
+		return update.CallbackQuery.Message.Chat.ID
+	}
+
+	if update.MyChatMember != nil {
+		return update.MyChatMember.Chat.ID
+	}
+
+	return 0
+}

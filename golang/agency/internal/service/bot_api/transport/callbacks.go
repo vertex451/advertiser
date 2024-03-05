@@ -5,7 +5,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func (t *Transport) handleCallbackQuery(query *tgbotapi.CallbackQuery) *tgbotapi.MessageConfig {
+func (t *Transport) handleCallbackQuery(query *tgbotapi.CallbackQuery) *transport.Msg {
 	params := transport.ParseCallBackQuery(query)
 
 	if params.Page != Back {
@@ -15,7 +15,7 @@ func (t *Transport) handleCallbackQuery(query *tgbotapi.CallbackQuery) *tgbotapi
 	return t.NavigateToPage(params)
 }
 
-func (t *Transport) NavigateToPage(params transport.CallBackQueryParams) *tgbotapi.MessageConfig {
+func (t *Transport) NavigateToPage(params transport.CallBackQueryParams) *transport.Msg {
 	switch params.Page {
 	case Start:
 		return t.start(params.ChatID)

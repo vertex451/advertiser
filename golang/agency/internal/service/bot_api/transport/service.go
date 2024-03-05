@@ -2,6 +2,7 @@ package transport
 
 import (
 	"advertiser/shared/pkg/service/constants"
+	"advertiser/shared/pkg/service/transport"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
 	"sync"
@@ -67,41 +68,37 @@ func New(uc bot_api.UseCase, tgToken string) *Transport {
 }
 
 func (t *Transport) MonitorChannels() {
+	var err error
+	var sentMsg tgbotapi.Message
+	var state stateData
+	var chatID int64
 	updates := t.tgBotApi.GetUpdatesChan(t.updateConfig)
-
 	for update := range updates {
-
-		//msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Welcome to the bot! Press the button below to get started.")
-		//msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
-		//	tgbotapi.NewKeyboardButtonRow(
-		//		tgbotapi.NewKeyboardButton("Start"),
-		//	))
-		//sentMsg, err := t.tgBotApi.Send(msg)
-		//if err != nil {
-		//	zap.L().Error("failed to send message", zap.Error(err))
-		//}
-
-		var err error
-		var sentMsg tgbotapi.Message
 		responseMessage := t.handleUpdate(update)
-		if responseMessage != nil {
-			if t.lastMsgID != 0 {
-				deleteMsg := tgbotapi.NewDeleteMessage(TgBotDirectChatID, t.lastMsgID)
-				t.tgBotApi.Send(deleteMsg)
-				t.lastMsgID = 0
-			}
-			sentMsg, err = t.tgBotApi.Send(responseMessage)
-			if err != nil {
-				zap.L().Error("failed to send message", zap.Error(err))
-				continue
-			}
-			t.lastMsgID = sentMsg.MessageID
+		if responseMessage == nil {
+			continue
 		}
+
+		chatID = transport.GetChatID(update)
+
+		state = t.getState(chatID)
+		if !responseMessage.SkipDeletion && state.lastMsgID != 0 {
+			deleteMsg := tgbotapi.NewDeleteMessage(TgBotDirectChatID, state.lastMsgID)
+			t.tgBotApi.Send(deleteMsg)
+		}
+
+		sentMsg, err = t.tgBotApi.Send(responseMessage.Msg)
+		if err != nil {
+			zap.L().Error("failed to send message", zap.Error(err))
+			continue
+		}
+		state.lastMsgID = sentMsg.MessageID
+		t.state.Store(chatID, state)
 	}
 }
 
 // TODO add rate limiter
-func (t *Transport) handleUpdate(update tgbotapi.Update) *tgbotapi.MessageConfig {
+func (t *Transport) handleUpdate(update tgbotapi.Update) *transport.Msg {
 	if update.Message != nil {
 		if update.Message.IsCommand() {
 			switch update.Message.Command() {

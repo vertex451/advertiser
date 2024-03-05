@@ -10,8 +10,9 @@ import (
 const EveryMinute = "*/1 * * * *"
 
 func (s *Transport) RunNotificationService() {
-	s.StartChannelOwnerNewAdsNotificator()
+	s.StartChannelOwnerNewAdsChecker()
 	s.StartNewAdsChecker()
+	s.StartOverspendingChecker()
 }
 
 func (s *Transport) StartNewAdsChecker() {
@@ -23,7 +24,7 @@ func (s *Transport) StartNewAdsChecker() {
 	}
 }
 
-func (s *Transport) StartChannelOwnerNewAdsNotificator() {
+func (s *Transport) StartChannelOwnerNewAdsChecker() {
 	_, err := s.cron.AddFunc(EveryMinute, func() {
 		s.NotifyChannelOwnersAboutNewAds(models.AdChanCreated)
 	})
@@ -32,7 +33,16 @@ func (s *Transport) StartChannelOwnerNewAdsNotificator() {
 	}
 }
 
-func (s *Transport) ScheduleMsgDeletion(adChanID string, channelID int64, messageID int, at time.Time) error {
+func (s *Transport) StartOverspendingChecker() {
+	_, err := s.cron.AddFunc(EveryMinute, func() {
+		s.PreventOverspending()
+	})
+	if err != nil {
+		zap.L().Error("failed to prevent overspending", zap.Error(err))
+	}
+}
+
+func (s *Transport) ScheduleMsgDeletionAtTime(adChanID string, channelID int64, messageID int, at time.Time) error {
 	_, err := s.cron.AddFunc(
 		fmt.Sprintf("%d %d %d %d *", at.Minute()+1, at.Hour(), at.Day(), int(at.Month())),
 		func() {
