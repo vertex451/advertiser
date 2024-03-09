@@ -4,12 +4,15 @@ import (
 	"advertiser/shared/pkg/service/repo/models"
 	"advertiser/shared/pkg/service/usecase"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"slices"
 )
 
 func (uc *UseCase) AllTopics() (res []string) {
 	for topic := range uc.cache.topics {
 		res = append(res, topic)
 	}
+
+	slices.Sort(res)
 
 	return res
 }

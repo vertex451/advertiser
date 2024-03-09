@@ -1,6 +1,7 @@
 package postgresql
 
 import (
+	"advertiser/channel_owner/internal/config"
 	"advertiser/shared/pkg/service/repo"
 	"gorm.io/gorm"
 	"sync"
@@ -11,8 +12,8 @@ type Repository struct {
 	channelIdByHandle sync.Map // map[channelHandle]channelID
 }
 
-func New() *Repository {
+func New(cfg *config.Config) *Repository {
 	return &Repository{
-		Db: repo.New(),
+		Db: repo.New(cfg.PostgresHost),
 	}
 }

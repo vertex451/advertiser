@@ -2,8 +2,6 @@ package transport
 
 import (
 	"advertiser/shared/pkg/service/transport"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"strings"
 )
 
 type stateData struct {
@@ -17,28 +15,13 @@ type stateData struct {
 	adID            string
 }
 
-func (s *Transport) handleStateQuery(update tgbotapi.Update) *transport.Msg {
-	chatID := update.Message.Chat.ID
-	state := s.getState(chatID)
-
-	switch state.state {
-	case StateEditTopics:
-		topics := strings.Split(update.Message.Text, ",")
-		return s.editChannelTopics(chatID, state.channelID, topics)
-	case StateWaitForRejectReason:
-		return s.saveRejectionReason(chatID, state.adChanID, update.Message.Text)
-	default:
-		return s.start(chatID)
-	}
-}
-
 // setState sets the state of the conversation for a given chat ID
-func (s *Transport) setState(chatID int64, data stateData) {
+func (s *Service) setState(chatID int64, data stateData) {
 	s.state.Store(chatID, data)
 }
 
 // getState retrieves the state of the conversation for a given chat ID
-func (s *Transport) getState(chatID int64) stateData {
+func (s *Service) getState(chatID int64) stateData {
 	state, ok := s.state.Load(chatID)
 	if !ok {
 		return stateData{
@@ -49,7 +32,7 @@ func (s *Transport) getState(chatID int64) stateData {
 	return state.(stateData)
 }
 
-func (s *Transport) resetState(chatID int64) {
+func (s *Service) resetState(chatID int64) {
 	state := s.getState(chatID)
 	s.state.Store(chatID, stateData{
 		state:     StateStart,
@@ -57,7 +40,7 @@ func (s *Transport) resetState(chatID int64) {
 	})
 }
 
-func (s *Transport) addCrumbs(params transport.CallBackQueryParams) {
+func (s *Service) addCrumbs(params transport.CallBackQueryParams) {
 	rawState, ok := s.state.Load(params.ChatID)
 	var state stateData
 	if ok {

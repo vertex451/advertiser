@@ -11,7 +11,6 @@ var dependencyList = []dep{
 	RegisterConfig,
 	RegisterLogger,
 	RegisterPostgresqlService,
-	RegisterTgBotApi,
 	RegisterListenerService,
 }
 

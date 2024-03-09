@@ -8,8 +8,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func New() *gorm.DB {
-	dsn := "host=localhost user=postgres password=postgres dbname=postgres port=5432 sslmode=disable TimeZone=Europe/Warsaw"
+func New(host string) *gorm.DB {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Warsaw",
+		host,
+		"postgres",
+		"postgres",
+		"postgres",
+		"5432",
+	)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(fmt.Sprintf("failed to connect database: %v", err))

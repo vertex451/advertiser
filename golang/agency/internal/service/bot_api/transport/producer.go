@@ -214,7 +214,7 @@ TargetTopics: %s
 BudgetUSD: %v
 Message: %s
 
-Estimated coverage: %v
+Total members: %v
 `,
 			ad.Name,
 			ad.Status,

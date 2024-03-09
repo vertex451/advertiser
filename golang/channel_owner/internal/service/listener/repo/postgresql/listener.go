@@ -20,19 +20,13 @@ func (r *Repository) AllTopics() (res []string, err error) {
 }
 
 func (r *Repository) StoreInitialChannelData(admins []tgbotapi.ChatMember, channel models.Channel) error {
-	if _, ok := r.channelIdByHandle.Load(channel.Handle); ok {
-		return nil
-	}
-
-	if result := r.Db.Create(&channel); result.Error != nil {
+	if result := r.Db.Save(&channel); result.Error != nil {
 		return result.Error
 	}
 
 	if err := r.upsertAdminAndCreateLinks(channel.ID, admins); err != nil {
 		return err
 	}
-
-	r.channelIdByHandle.Store(channel.Handle, channel.ID)
 
 	return nil
 }
@@ -47,7 +41,7 @@ func (r *Repository) upsertAdminAndCreateLinks(chatID int64, admins []tgbotapi.C
 			return err
 		}
 
-		if tx := r.Db.Create(&models.ChannelAdmin{
+		if tx := r.Db.Save(&models.ChannelAdmin{
 			ChannelID: chatID,
 			UserID:    admin.ID,
 			Role:      oneAdmin.Status,
@@ -113,7 +107,16 @@ func (r *Repository) UpdateChannelTopics(channelID int64, newTopicNames []string
 }
 
 func (r *Repository) DeleteChannel(chatID int64) error {
-	return r.Db.Delete(&models.Channel{}, chatID).Error
+	err := r.Db.Delete(&models.Channel{}, chatID).Error
+	if err != nil {
+		return err
+	}
+
+	return r.DeleteChannelAdminsEntries(chatID)
+}
+
+func (r *Repository) DeleteChannelAdminsEntries(chatID int64) error {
+	return r.Db.Delete(&models.ChannelAdmin{}, "channel_id = ?", chatID).Error
 }
 
 func (r *Repository) GetAdsToModerateByUserID(id int64) ([]models.AdvertisementChannel, error) {

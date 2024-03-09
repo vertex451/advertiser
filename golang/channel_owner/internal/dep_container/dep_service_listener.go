@@ -1,10 +1,11 @@
 package dep_container
 
 import (
+	"advertiser/channel_owner/internal/config"
 	"advertiser/channel_owner/internal/service/listener/repo/postgresql"
 	"advertiser/channel_owner/internal/service/listener/transport"
 	"advertiser/channel_owner/internal/service/listener/usecase"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"advertiser/shared/tg_bot_api"
 	"github.com/sarulabs/di"
 )
 
@@ -15,7 +16,8 @@ func RegisterListenerService(builder *di.Builder) error {
 	return builder.Add(di.Def{
 		Name: listenerServiceDefName,
 		Build: func(ctn di.Container) (interface{}, error) {
-			tgBotApi := ctn.Get(tbBotApiDefName).(*tgbotapi.BotAPI)
+			cfg := ctn.Get(configDefName).(*config.Config)
+			tgBotApi := tg_bot_api.New(cfg.TelegramToken)
 			r := ctn.Get(postgresqlDefName).(*postgresql.Repository)
 			uc := usecase.New(r)
 
@@ -24,12 +26,12 @@ func RegisterListenerService(builder *di.Builder) error {
 	})
 }
 
-// RunChannelListener runs RunChannelListener dependency.
-func (c Container) RunChannelListener() {
-	c.container.Get(listenerServiceDefName).(*transport.Transport).Run()
+// MonitorChannels runs MonitorChannels dependency.
+func (c Container) MonitorChannels() {
+	c.container.Get(listenerServiceDefName).(*transport.Service).MonitorChannels()
 }
 
 // RunNotificationService runs RunNotificationService dependency.
 func (c Container) RunNotificationService() {
-	c.container.Get(listenerServiceDefName).(*transport.Transport).RunNotificationService()
+	c.container.Get(listenerServiceDefName).(*transport.Service).RunNotificationService()
 }

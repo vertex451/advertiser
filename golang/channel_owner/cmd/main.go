@@ -15,7 +15,7 @@ func main() {
 		panic(fmt.Sprintf("error initializing DI container: %+v", err))
 	}
 
-	go container.RunChannelListener()
+	go container.MonitorChannels()
 	go container.RunNotificationService()
 
 	exit := make(chan os.Signal, 1)
@@ -26,14 +26,3 @@ func main() {
 		zap.S().Error("error deleting DI container", zap.Error(err))
 	}
 }
-
-//func test() {
-//	fmt.Println("test")
-//	c := cron.New()
-//
-//	// Start the cron scheduler
-//	c.Start()
-//
-//
-//
-//}

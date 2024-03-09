@@ -2,50 +2,76 @@ package transport
 
 import (
 	"advertiser/channel_owner/internal/service/listener"
+	"advertiser/shared/pkg/service/constants"
 	"advertiser/shared/pkg/service/transport"
-	"advertiser/shared/telegram_api"
+	"advertiser/shared/tg_api"
+	"advertiser/shared/tg_bot_api"
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
+	"strings"
 	"sync"
 )
 
-type Transport struct {
-	uc           listener.UseCase
-	tgBotApi     *tgbotapi.BotAPI
-	updateConfig tgbotapi.UpdateConfig
-	state        sync.Map // map[ChatID]stateData
-	cron         *cron.Cron
-	tgApi        *telegram_api.Service
+// Commands:
+const (
+	ChannelMonetizerBotName = "channel_monetizer_bot"
+
+	EditChannelsTopics = "edit_channel_topics"
+	ListChannelsTopics = "list_channels_topics"
+	MyChannels         = "my_channels"
+
+	Moderate        = "moderate"
+	ModerateDetails = "moderate_details"
+	PostNow         = "post_now"
+	PostLater       = "post_later"
+	RejectAd        = "reject_ad"
+)
+
+type BotState int
+
+const (
+	StateStart BotState = iota
+	StateEditTopics
+	StateWaitForRejectReason
+)
+
+type Service struct {
+	uc       listener.UseCase
+	tgBotApi tg_bot_api.TgBotApiProvider
+	state    sync.Map // map[ChatID]stateData
+	cron     *cron.Cron
+	tgApi    *tg_api.Service
 }
 
-func New(uc listener.UseCase, tgBotApi *tgbotapi.BotAPI) *Transport {
-	updateConfig := tgbotapi.NewUpdate(0)
-	updateConfig.Timeout = 30
-
+func New(uc listener.UseCase, tgBotApi tg_bot_api.TgBotApiProvider) *Service {
 	c := cron.New()
 	c.Start()
 
-	return &Transport{
-		tgBotApi:     tgBotApi,
-		updateConfig: updateConfig,
-		uc:           uc,
-		cron:         c,
-		tgApi:        telegram_api.New(),
+	return &Service{
+		tgBotApi: tgBotApi,
+		uc:       uc,
+		cron:     c,
+		tgApi:    tg_api.New(),
 	}
 }
 
-func (s *Transport) Run() {
-	go s.MonitorChannels()
-}
-
-func (s *Transport) MonitorChannels() {
+func (s *Service) MonitorChannels() {
 	var err error
 	var sentMsg tgbotapi.Message
 	var state stateData
 	var chatID int64
-	updates := s.tgBotApi.GetUpdatesChan(s.updateConfig)
+	updates := s.tgBotApi.GetUpdatesChan()
 	for update := range updates {
+		fmt.Printf("\n### update %+v\n\n", update)
+		if update.CallbackQuery != nil {
+			fmt.Printf("\n### update.CallbackQuery.Message %+v\n\n", update.CallbackQuery.Message)
+		}
+		if update.Message != nil {
+			fmt.Printf("\n### update.Message %+v\n\n", update.Message)
+		}
+
 		responseMessage := s.handleUpdate(update)
 		if responseMessage == nil {
 			continue
@@ -69,8 +95,7 @@ func (s *Transport) MonitorChannels() {
 	}
 }
 
-// TODO add rate limiter
-func (s *Transport) handleUpdate(update tgbotapi.Update) *transport.Msg {
+func (s *Service) handleUpdate(update tgbotapi.Update) *transport.Msg {
 	if update.Message != nil {
 		if update.Message.IsCommand() {
 			return s.handleCommand(update)
@@ -92,7 +117,50 @@ func (s *Transport) handleUpdate(update tgbotapi.Update) *transport.Msg {
 	return nil
 }
 
-// Added bot by admin to channel
-// {"ok":true,"result":[{"update_id":632156492, "my_chat_member":{"chat":{"id":-1002025237232,"title":"Public Sport Channel","username":"sportchannel451","type":"channel"},"from":{"id":399749369,"is_bot":false,"first_name":"Artem","username":"vertex451","language_code":"en"},"date":1705664974,"old_chat_member":{"user":{"id":6845534569,"is_bot":true,"first_name":"Advertiser","username":"advertiser_451_bot"},"status":"left"},"new_chat_member":{"user":{"id":6845534569,"is_bot":true,"first_name":"Advertiser","username":"advertiser_451_bot"},"status":"administrator","can_be_edited":false,"can_manage_chat":true,"can_change_info":false,"can_post_messages":true,"can_edit_messages":false,"can_delete_messages":false,"can_invite_users":false,"can_restrict_members":true,"can_promote_members":false,"can_manage_video_chats":false,"can_post_stories":false,"can_edit_stories":false,"can_delete_stories":false,"is_anonymous":false,"can_manage_voice_chats":false}}}]}
-// Remove bot from admins
-// {"ok":true,"result":[{"update_id":632156491, "my_chat_member":{"chat":{"id":-1002025237232,"title":"Public Sport Channel","username":"sportchannel451","type":"channel"},"from":{"id":399749369,"is_bot":false,"first_name":"Artem","username":"vertex451","language_code":"en"},"date":1705664660,"old_chat_member":{"user":{"id":6845534569,"is_bot":true,"first_name":"Advertiser","username":"advertiser_451_bot"},"status":"administrator","can_be_edited":false,"can_manage_chat":true,"can_change_info":false,"can_post_messages":true,"can_edit_messages":false,"can_delete_messages":false,"can_invite_users":false,"can_restrict_members":true,"can_promote_members":false,"can_manage_video_chats":false,"can_post_stories":false,"can_edit_stories":false,"can_delete_stories":false,"is_anonymous":false,"can_manage_voice_chats":false},"new_chat_member":{"user":{"id":6845534569,"is_bot":true,"first_name":"Advertiser","username":"advertiser_451_bot"},"status":"left"}}}]}
+func (s *Service) handleCommand(update tgbotapi.Update) *transport.Msg {
+	switch update.Message.Command() {
+	case constants.Start:
+		return s.start(update.Message.Chat.ID)
+	case constants.AllTopics:
+		return s.allTopics(update.Message.Chat.ID)
+	case Moderate:
+		return s.moderate(update.Message.Chat.ID)
+	}
+	return nil
+}
+
+func (s *Service) handleStateQuery(update tgbotapi.Update) *transport.Msg {
+	chatID := update.Message.Chat.ID
+	state := s.getState(chatID)
+
+	switch state.state {
+	case StateEditTopics:
+		topics := strings.Split(update.Message.Text, ",")
+		return s.editChannelTopics(chatID, state.channelID, topics)
+	case StateWaitForRejectReason:
+		return s.saveRejectionReason(chatID, state.adChanID, update.Message.Text)
+	default:
+		return s.start(chatID)
+	}
+}
+
+func (s *Service) handleCallbackQuery(query *tgbotapi.CallbackQuery) *transport.Msg {
+	params := transport.ParseCallBackQuery(query)
+
+	if params.Page != constants.Back {
+		s.addCrumbs(params)
+	}
+
+	return s.NavigateToPage(params)
+}
+
+func (s *Service) handleUpdateEvent(update tgbotapi.Update) *transport.Msg {
+	switch update.MyChatMember.NewChatMember.Status {
+	case StatusAdministrator:
+		return s.handleBotIsAddedToAdminsEvent(update.MyChatMember)
+	case StatusLeft:
+		return s.handleBotIsRemovedFromAdminsEvent(update.MyChatMember)
+	}
+
+	return nil
+}

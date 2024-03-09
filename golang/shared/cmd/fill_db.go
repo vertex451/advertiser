@@ -14,7 +14,7 @@ type repository struct {
 }
 
 func New() *repository {
-	db := repo.New()
+	db := repo.New("localhost")
 
 	return &repository{
 		db: db,
@@ -23,7 +23,7 @@ func New() *repository {
 
 func main() {
 	r := New()
-	r.fillTopics()
+	r.FillTopics()
 	r.fillChannelOwnerData()
 	r.fillAgencyData()
 
@@ -34,7 +34,7 @@ func (r *repository) fillChannelOwnerData() {
 	r.fillChannels()
 }
 
-func (r *repository) fillTopics() {
+func (r *repository) FillTopics() {
 	topics := []models.Topic{{ID: "art"}, {ID: "books"}, {ID: "food"}, {ID: "pets"}, {ID: "sport"}}
 
 	for _, topic := range topics {

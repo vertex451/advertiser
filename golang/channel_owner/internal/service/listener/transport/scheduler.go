@@ -9,13 +9,13 @@ import (
 
 const EveryMinute = "*/1 * * * *"
 
-func (s *Transport) RunNotificationService() {
+func (s *Service) RunNotificationService() {
 	s.StartChannelOwnerNewAdsChecker()
 	s.StartNewAdsChecker()
 	s.StartOverspendingChecker()
 }
 
-func (s *Transport) StartNewAdsChecker() {
+func (s *Service) StartNewAdsChecker() {
 	_, err := s.cron.AddFunc(EveryMinute, func() {
 		s.uc.CheckForNewAds()
 	})
@@ -24,7 +24,7 @@ func (s *Transport) StartNewAdsChecker() {
 	}
 }
 
-func (s *Transport) StartChannelOwnerNewAdsChecker() {
+func (s *Service) StartChannelOwnerNewAdsChecker() {
 	_, err := s.cron.AddFunc(EveryMinute, func() {
 		s.NotifyChannelOwnersAboutNewAds(models.AdChanCreated)
 	})
@@ -33,7 +33,7 @@ func (s *Transport) StartChannelOwnerNewAdsChecker() {
 	}
 }
 
-func (s *Transport) StartOverspendingChecker() {
+func (s *Service) StartOverspendingChecker() {
 	_, err := s.cron.AddFunc(EveryMinute, func() {
 		s.PreventOverspending()
 	})
@@ -42,7 +42,7 @@ func (s *Transport) StartOverspendingChecker() {
 	}
 }
 
-func (s *Transport) ScheduleMsgDeletionAtTime(adChanID string, channelID int64, messageID int, at time.Time) error {
+func (s *Service) ScheduleMsgDeletionAtTime(adChanID string, channelID int64, messageID int, at time.Time) error {
 	_, err := s.cron.AddFunc(
 		fmt.Sprintf("%d %d %d %d *", at.Minute()+1, at.Hour(), at.Day(), int(at.Month())),
 		func() {

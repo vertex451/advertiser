@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func (s *Transport) editTopicsPrompt(respondTo int64, rawChannelID string) *transport.Msg {
+func (s *Service) editTopicsPrompt(respondTo int64, rawChannelID string) *transport.Msg {
 	channelID, err := strconv.ParseInt(rawChannelID, 10, 64)
 	if err != nil {
 		zap.L().Panic("failed to parse string to int64")

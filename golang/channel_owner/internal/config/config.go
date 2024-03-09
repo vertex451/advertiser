@@ -1,34 +1,47 @@
 package config
 
 import (
+	"github.com/caarlos0/env/v6"
+	"github.com/joho/godotenv"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
+	"log"
 	"os"
-
-	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Port     string `mapstructure:"SERVER_PORT"`
-	LogLevel string `mapstructure:"LOG_LEVEL"`
+	PostgresHost string
+	LogLevel     string
 
-	TelegramToken string `mapstructure:"TELEGRAM_TOKEN"`
+	TelegramToken string
 }
 
 func LoadConfig(filePath string) (*Config, error) {
-	var err error
-	viper.AutomaticEnv()
-
-	viper.SetDefault("SERVER_PORT", "8080")
-	viper.SetDefault("LOG_LEVEL", "DEBUG")
-
-	if _, err = os.Stat(filePath); err == nil {
-		viper.SetConfigFile(filePath)
-		if err = viper.ReadInConfig(); err != nil {
-			return nil, err //nolint:wrapcheck
-		}
+	err := godotenv.Load()
+	if err != nil {
+		zap.L().Error("Error loading .env file", zap.Error(err))
+		return nil, err
 	}
 
-	var cfg Config
-	err = viper.Unmarshal(&cfg)
+	cfg := Config{} // 👈 new instance of `Config`
 
-	return &cfg, err //nolint:wrapcheck
+	err = env.Parse(&cfg) // 👈 Parse environment variables into `Config`
+	if err != nil {
+		log.Fatalf("unable to parse ennvironment variables: %e", err)
+	}
+
+	postgresHost := os.Getenv("POSTGRES_HOST")
+	if postgresHost == "" {
+		postgresHost = "localhost"
+	}
+	cfg.PostgresHost = postgresHost
+
+	// set sensitive data
+	telegramToken := os.Getenv("TELEGRAM_TOKEN")
+	if telegramToken == "" {
+		return nil, errors.New("TELEGRAM_TOKEN is not set")
+	}
+	cfg.TelegramToken = telegramToken
+
+	return &cfg, nil
 }

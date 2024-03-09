@@ -1,18 +1,20 @@
 version: '3.9'
 
 services:
-#  go-app:
-#    container_name: go-app
-#    image: francescoxx/go-app:1.0.0
-#    build: .
-#    environment:
-#      DATABASE_URL: "host=db user=postgres password=postgres dbname=postgres sslmode=disable"
-#    ports:
-#      - "8000:8000"
-#    depends_on:
-#      - db
-  db:
-    container_name: db
+  channel_owner:
+    container_name: channel_owner
+    build:
+      context: ./golang/
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    env_file:
+      - ./golang/channel_owner/.env
+    environment:
+      - POSTGRES_HOST=postgres
+    restart: always
+  postgres:
+    container_name: postgres
     image: postgres:12
     environment:
       POSTGRES_PASSWORD: postgres
@@ -23,14 +25,8 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data1
 
-  redis:
-    image: redis:latest
-    container_name: redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
 
 volumes:
   pgdata: {}
-  redis_data: {}
+
+

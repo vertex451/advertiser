@@ -15,19 +15,36 @@ import (
 	"strings"
 )
 
-func (s *Transport) handleCommand(update tgbotapi.Update) *transport.Msg {
-	switch update.Message.Command() {
+func (s *Service) NavigateToPage(params transport.CallBackQueryParams) *transport.Msg {
+	switch params.Page {
 	case constants.Start:
-		return s.start(update.Message.Chat.ID)
+		return s.start(params.ChatID)
+	case constants.Back:
+		return s.back(params.ChatID)
+
 	case constants.AllTopics:
-		return s.allTopics(update.Message.Chat.ID)
+		return s.allTopics(params.ChatID)
 	case Moderate:
-		return s.moderate(update.Message.Chat.ID)
+		return s.moderate(params.ChatID)
+	case MyChannels:
+		return s.listMyChannels(params.ChatID)
+	case ListChannelsTopics:
+		return s.listChannelTopics(params.ChatID, params.Variable)
+	case EditChannelsTopics:
+		return s.editTopicsPrompt(params.ChatID, params.Variable)
+	case ModerateDetails:
+		return s.GetAdvertisementDetails(params.ChatID, params.Variable)
+	case PostNow:
+		return s.moderationDecision(params.ChatID, PostNow, params.Variable)
+	case RejectAd:
+		return s.moderationDecision(params.ChatID, RejectAd, params.Variable)
+
+	default:
+		return s.start(params.ChatID)
 	}
-	return nil
 }
 
-func (s *Transport) start(respondTo int64) *transport.Msg {
+func (s *Service) start(respondTo int64) *transport.Msg {
 	s.resetState(respondTo)
 
 	var buttons []tgbotapi.InlineKeyboardButton
@@ -46,7 +63,7 @@ func (s *Transport) start(respondTo int64) *transport.Msg {
 	}
 }
 
-func (s *Transport) back(respondTo int64) *transport.Msg {
+func (s *Service) back(respondTo int64) *transport.Msg {
 	state := s.getState(respondTo)
 	if len(state.crumbs) <= 1 {
 		return s.start(respondTo)
@@ -60,7 +77,7 @@ func (s *Transport) back(respondTo int64) *transport.Msg {
 	return s.NavigateToPage(params)
 }
 
-func (s *Transport) allTopics(respondTo int64) *transport.Msg {
+func (s *Service) allTopics(respondTo int64) *transport.Msg {
 	var msg tgbotapi.MessageConfig
 	msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf(`
 Supported topics:
@@ -73,7 +90,7 @@ Supported topics:
 	}
 }
 
-func (s *Transport) listMyChannels(respondTo int64) *transport.Msg {
+func (s *Service) listMyChannels(respondTo int64) *transport.Msg {
 	var msg tgbotapi.MessageConfig
 	myChannels, err := s.uc.ListMyChannels(respondTo)
 	if err != nil {
@@ -109,7 +126,7 @@ func (s *Transport) listMyChannels(respondTo int64) *transport.Msg {
 	}
 }
 
-func (s *Transport) listChannelTopics(respondTo int64, rawChannelID string) *transport.Msg {
+func (s *Service) listChannelTopics(respondTo int64, rawChannelID string) *transport.Msg {
 	channelID, err := strconv.ParseInt(rawChannelID, 10, 64)
 	if err != nil {
 		zap.L().Panic("failed to parse string to int64")
@@ -141,7 +158,7 @@ func (s *Transport) listChannelTopics(respondTo int64, rawChannelID string) *tra
 	}
 }
 
-func (s *Transport) editChannelTopics(respondTo, channelID int64, topics []string) *transport.Msg {
+func (s *Service) editChannelTopics(respondTo, channelID int64, topics []string) *transport.Msg {
 	s.resetState(channelID)
 
 	var msg tgbotapi.MessageConfig
@@ -168,7 +185,7 @@ func (s *Transport) editChannelTopics(respondTo, channelID int64, topics []strin
 	}
 }
 
-func (s *Transport) moderate(id int64) *transport.Msg {
+func (s *Service) moderate(id int64) *transport.Msg {
 	ads, err := s.uc.GetAdsToModerateByUserID(id)
 	if err != nil {
 		zap.L().Error("failed to get ads to moderate", zap.Error(err))
@@ -198,7 +215,7 @@ func (s *Transport) moderate(id int64) *transport.Msg {
 	}
 }
 
-func (s *Transport) GetAdvertisementDetails(chatID int64, advertisementChannelID string) *transport.Msg {
+func (s *Service) GetAdvertisementDetails(chatID int64, advertisementChannelID string) *transport.Msg {
 	advertisementChannel, err := s.uc.GetAdChanDetails(advertisementChannelID)
 	if err != nil {
 		zap.L().Error("failed to get ad details", zap.Error(err))
@@ -239,7 +256,7 @@ Advertisement details:
 	}
 }
 
-func (s *Transport) moderationDecision(respondTo int64, decision string, adChanID string) *transport.Msg {
+func (s *Service) moderationDecision(respondTo int64, decision string, adChanID string) *transport.Msg {
 	var err error
 	var msg tgbotapi.MessageConfig
 
@@ -279,7 +296,7 @@ func (s *Transport) moderationDecision(respondTo int64, decision string, adChanI
 	}
 }
 
-func (s *Transport) saveRejectionReason(respondTo int64, adChanID, reason string) *transport.Msg {
+func (s *Service) saveRejectionReason(respondTo int64, adChanID, reason string) *transport.Msg {
 	s.resetState(respondTo)
 	err := s.uc.UpdateAdChanEntry(models.AdvertisementChannel{
 		ID:              uuid.FromStringOrNil(adChanID),

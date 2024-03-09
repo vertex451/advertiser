@@ -11,24 +11,14 @@ import (
 
 const (
 	StatusAdministrator = "administrator"
+	StatusCreator       = "creator"
 	StatusLeft          = "left"
 )
 
-func (s *Transport) handleUpdateEvent(update tgbotapi.Update) *transport.Msg {
-	switch update.MyChatMember.NewChatMember.Status {
-	case StatusAdministrator:
-		return s.botIsAddedToAdmins(update.MyChatMember)
-	case StatusLeft:
-		return s.botIsRemovedFromAdmins(update.MyChatMember)
-	}
-
-	return nil
-}
-
-func (s *Transport) botIsAddedToAdmins(myChatMember *tgbotapi.ChatMemberUpdated) *transport.Msg {
+func (s *Service) handleBotIsAddedToAdminsEvent(myChatMember *tgbotapi.ChatMemberUpdated) *transport.Msg {
 	var err error
 	var msg tgbotapi.MessageConfig
-	if !myChatMember.NewChatMember.CanPostMessages {
+	if !botHasNeededPermissions(myChatMember) {
 		msg = tgbotapi.NewMessage(myChatMember.From.ID, fmt.Sprintf("Advertiser bot doesn's have needed permissions in channel %s.", myChatMember.Chat.Title))
 		return &transport.Msg{
 			Msg: msg,
@@ -85,7 +75,7 @@ func (s *Transport) botIsAddedToAdmins(myChatMember *tgbotapi.ChatMemberUpdated)
 	}
 }
 
-func (s *Transport) botIsRemovedFromAdmins(myChatMember *tgbotapi.ChatMemberUpdated) *transport.Msg {
+func (s *Service) handleBotIsRemovedFromAdminsEvent(myChatMember *tgbotapi.ChatMemberUpdated) *transport.Msg {
 	var msg tgbotapi.MessageConfig
 	err := s.uc.DeleteChannel(myChatMember.Chat.ID)
 	if err != nil {
@@ -99,4 +89,8 @@ func (s *Transport) botIsRemovedFromAdmins(myChatMember *tgbotapi.ChatMemberUpda
 	return &transport.Msg{
 		Msg: msg,
 	}
+}
+
+func botHasNeededPermissions(myChatMember *tgbotapi.ChatMemberUpdated) bool {
+	return myChatMember.NewChatMember.CanPostMessages && myChatMember.NewChatMember.CanDeleteMessages
 }

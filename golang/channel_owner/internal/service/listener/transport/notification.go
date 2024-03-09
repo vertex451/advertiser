@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func (s *Transport) NotifyChannelOwnersAboutNewAds(status models.AdChanStatus) {
+func (s *Service) NotifyChannelOwnersAboutNewAds(status models.AdChanStatus) {
 	res, err := s.uc.GetAdsChannelByStatus(status)
 	if err != nil {
 		return
@@ -30,7 +30,7 @@ Click on /%s to view them.
 	}
 }
 
-func (s *Transport) PostAdvertisement(adChanID string) error {
+func (s *Service) PostAdvertisement(adChanID string) error {
 	adChan, err := s.uc.GetAdChanDetails(adChanID)
 	if err != nil {
 		zap.L().Error("failed to get ad details", zap.Error(err))
@@ -71,7 +71,7 @@ func (s *Transport) PostAdvertisement(adChanID string) error {
 	return nil
 }
 
-func (s *Transport) DeleteAdvertisement(adChanID string, channelID int64, messageID int) error {
+func (s *Service) DeleteAdvertisement(adChanID string, channelID int64, messageID int) error {
 	editMessageConfig := tgbotapi.NewEditMessageText(channelID, messageID,
 		fmt.Sprintf(`
 Advertisement is finished. 

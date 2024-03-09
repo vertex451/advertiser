@@ -9,7 +9,7 @@ const (
 	DeletePostThreshold = 0.8
 )
 
-func (s *Transport) PreventOverspending() {
+func (s *Service) PreventOverspending() {
 	var err error
 	runningAds, err := s.uc.GetRunningAdvertisements()
 	if err != nil {
@@ -22,7 +22,7 @@ func (s *Transport) PreventOverspending() {
 	}
 }
 
-func (s *Transport) CalculateTotalCostForSingleAd(ad models.Advertisement) {
+func (s *Service) CalculateTotalCostForSingleAd(ad models.Advertisement) {
 	var err error
 	var totalAdViews, msgViews int
 	for _, adChan := range ad.AdsChannel {
