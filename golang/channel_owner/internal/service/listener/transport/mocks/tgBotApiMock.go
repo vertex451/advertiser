@@ -10,12 +10,22 @@ type TgBotApiMock struct {
 	TargetChan  chan tgbotapi.Chattable
 }
 
+type User struct {
+	ID       int64
+	UserName string
+}
+
+var ChannelCreator = User{
+	ID:       1,
+	UserName: "thisIsCreator",
+}
+
 func (t TgBotApiMock) GetChatAdministrators(config tgbotapi.ChatAdministratorsConfig) ([]tgbotapi.ChatMember, error) {
 	return []tgbotapi.ChatMember{
 		{
 			User: &tgbotapi.User{
-				ID:       1,
-				UserName: "thisIsCreator",
+				ID:       ChannelCreator.ID,
+				UserName: ChannelCreator.UserName,
 			},
 			Status: transport.StatusCreator,
 		},

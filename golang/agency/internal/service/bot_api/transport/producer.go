@@ -208,7 +208,7 @@ func (t *Transport) GetAdDetails(respondTo int64, rawID string) *transport.Msg {
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to get advertisement details. Error: %v", err))
 	} else {
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf(`
-Name: %s
+ID: %s
 Status: %s
 TargetTopics: %s
 BudgetUSD: %v
@@ -279,7 +279,7 @@ func (t *Transport) RunAd(respondTo int64, rawID string) *transport.Msg {
 }
 
 func parseAndValidateCreateAdInput(rawCampaignID, rawAdID, rawInput string) (*models.Advertisement, error) {
-	requiredFields := []string{"Name", "TargetTopics", "BudgetUSD", "CostPerView", "Message"}
+	requiredFields := []string{"ID", "TargetTopics", "BudgetUSD", "CostPerView", "Message"}
 
 	params := parseValues(rawInput)
 	for _, field := range requiredFields {
@@ -307,7 +307,7 @@ func parseAndValidateCreateAdInput(rawCampaignID, rawAdID, rawInput string) (*mo
 
 	for key, value := range params {
 		switch key {
-		case "Name":
+		case "ID":
 			ad.Name = value
 		case "BudgetUSD":
 			budget := 0

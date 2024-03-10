@@ -2,6 +2,7 @@ package main
 
 import (
 	"advertiser/channel_owner/internal/dep_container"
+	"advertiser/shared/pkg/service/repo"
 	"fmt"
 	"go.uber.org/zap"
 	"os"
@@ -10,6 +11,9 @@ import (
 )
 
 func main() {
+	// Fixes ERROR: duplicate key value violates unique constraint "pg_class_relname_nsp_index" (SQLSTATE 23505)
+	repo.New("localhost")
+
 	container, err := dep_container.New()
 	if err != nil {
 		panic(fmt.Sprintf("error initializing DI container: %+v", err))

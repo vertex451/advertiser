@@ -9,11 +9,18 @@ import (
 	"os"
 )
 
+const (
+	EnvIntegration = "integration"
+	EnvDev         = "dev"
+	EnvProd        = "prod"
+)
+
 type Config struct {
 	PostgresHost string
 	LogLevel     string
 
 	TelegramToken string
+	Env           string
 }
 
 func LoadConfig(filePath string) (*Config, error) {
@@ -42,6 +49,11 @@ func LoadConfig(filePath string) (*Config, error) {
 		return nil, errors.New("TELEGRAM_TOKEN is not set")
 	}
 	cfg.TelegramToken = telegramToken
+
+	cfg.Env = os.Getenv("ENV")
+	if cfg.Env == "" {
+		cfg.Env = EnvDev
+	}
 
 	return &cfg, nil
 }

@@ -8,6 +8,20 @@ import (
 	"gorm.io/gorm"
 )
 
+func GetAllTables() []interface{} {
+	return []interface{}{
+		models.Topic{},
+		models.User{},
+		models.Channel{},
+		models.ChannelTopic{},
+		models.ChannelAdmin{},
+		models.Campaign{},
+		models.Advertisement{},
+		models.AdvertisementChannel{},
+		models.AdvertisementTopic{},
+	}
+}
+
 func New(host string) *gorm.DB {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Warsaw",
 		host,
@@ -18,17 +32,11 @@ func New(host string) *gorm.DB {
 	)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic(fmt.Sprintf("failed to connect database: %v", err))
+		zap.L().Panic("failed to connect database", zap.Error(err))
 	}
 
 	err = db.AutoMigrate(
-		models.Channel{},
-		models.Topic{},
-		models.User{},
-		models.ChannelAdmin{},
-		models.Campaign{},
-		models.Advertisement{},
-		models.AdvertisementChannel{},
+		GetAllTables()...,
 	)
 	if err != nil {
 		zap.L().Panic("failed to AutoMigrate", zap.Error(err))

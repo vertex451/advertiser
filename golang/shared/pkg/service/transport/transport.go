@@ -13,7 +13,7 @@ type Msg struct {
 }
 
 type CallBackQueryParams struct {
-	ChatID   int64
+	UserID   int64
 	Page     string
 	Variable string
 }
@@ -22,7 +22,7 @@ func ParseCallBackQuery(query *tgbotapi.CallbackQuery) CallBackQueryParams {
 	parsed := strings.Split(query.Data, "/")
 
 	res := CallBackQueryParams{
-		ChatID: query.Message.Chat.ID,
+		UserID: query.From.ID,
 		Page:   parsed[0],
 	}
 
@@ -54,17 +54,17 @@ func AddNavigationButtons(msg tgbotapi.MessageConfig, buttons []tgbotapi.InlineK
 	return msg
 }
 
-func GetChatID(update tgbotapi.Update) int64 {
+func GetUserID(update tgbotapi.Update) int64 {
 	if update.Message != nil {
-		return update.Message.Chat.ID
+		return update.Message.From.ID
 	}
 
 	if update.CallbackQuery != nil {
-		return update.CallbackQuery.Message.Chat.ID
+		return update.CallbackQuery.From.ID
 	}
 
 	if update.MyChatMember != nil {
-		return update.MyChatMember.Chat.ID
+		return update.MyChatMember.From.ID
 	}
 
 	return 0

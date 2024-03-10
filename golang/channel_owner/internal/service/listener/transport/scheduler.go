@@ -1,22 +1,39 @@
 package transport
 
 import (
+	"advertiser/channel_owner/internal/config"
 	"advertiser/shared/pkg/service/repo/models"
 	"fmt"
 	"go.uber.org/zap"
 	"time"
 )
 
-const EveryMinute = "*/1 * * * *"
+const Every2Seconds = "*/2 * * * * *"
+const EveryMinute = "0 * * * * *"
+const EveryHour = "0 0 * * * *"
+
+func getInterval(env string) string {
+	switch env {
+	case config.EnvIntegration:
+		return Every2Seconds
+	case config.EnvDev:
+		return EveryMinute
+	case config.EnvProd:
+		return EveryHour
+	default:
+		return EveryMinute
+	}
+}
 
 func (s *Service) RunNotificationService() {
+	zap.L().Info("running notification service", zap.String("pattern", getInterval(s.env)))
 	s.StartChannelOwnerNewAdsChecker()
 	s.StartNewAdsChecker()
 	s.StartOverspendingChecker()
 }
 
 func (s *Service) StartNewAdsChecker() {
-	_, err := s.cron.AddFunc(EveryMinute, func() {
+	_, err := s.cron.AddFunc(getInterval(s.env), func() {
 		s.uc.CheckForNewAds()
 	})
 	if err != nil {
@@ -25,7 +42,7 @@ func (s *Service) StartNewAdsChecker() {
 }
 
 func (s *Service) StartChannelOwnerNewAdsChecker() {
-	_, err := s.cron.AddFunc(EveryMinute, func() {
+	_, err := s.cron.AddFunc(getInterval(s.env), func() {
 		s.NotifyChannelOwnersAboutNewAds(models.AdChanCreated)
 	})
 	if err != nil {
@@ -34,7 +51,7 @@ func (s *Service) StartChannelOwnerNewAdsChecker() {
 }
 
 func (s *Service) StartOverspendingChecker() {
-	_, err := s.cron.AddFunc(EveryMinute, func() {
+	_, err := s.cron.AddFunc(getInterval(s.env), func() {
 		s.PreventOverspending()
 	})
 	if err != nil {

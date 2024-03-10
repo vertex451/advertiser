@@ -1,32 +1,15 @@
 version: '3.9'
 
 services:
-#  channel_owner:
-#    container_name: channel_owner
-#    build:
-#      context: ./golang/
-#      dockerfile: Dockerfile
-#    depends_on:
-#      - postgres
-#    env_file:
-#      - ./golang/channel_owner/.env
-#    environment:
-#      - POSTGRES_HOST=postgres
-#    restart: always
   postgres:
     container_name: postgres
-    image: postgres:12
+    image: postgres:15.6
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data1
 
-
-volumes:
-  pgdata: {}
 
 

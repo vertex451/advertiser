@@ -12,7 +12,7 @@ type Channel struct {
 	Admins      []*User  `gorm:"many2many:channel_admins;"`
 	Topics      []*Topic `gorm:"many2many:channel_topics;"`
 	Description string
-	Handle      string `gorm:"index"`
+	Handle      string
 
 	IsChannel      bool
 	RewardsAddress string

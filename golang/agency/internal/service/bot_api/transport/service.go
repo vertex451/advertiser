@@ -44,7 +44,7 @@ type Transport struct {
 	tgBotApi     *tgbotapi.BotAPI
 	uc           bot_api.UseCase
 	updateConfig tgbotapi.UpdateConfig
-	state        sync.Map // map[ChatID]stateData
+	state        sync.Map // map[UserID]stateData
 	lastMsgID    int
 }
 
@@ -71,7 +71,7 @@ func (t *Transport) MonitorChannels() {
 	var err error
 	var sentMsg tgbotapi.Message
 	var state stateData
-	var chatID int64
+	var userID int64
 	updates := t.tgBotApi.GetUpdatesChan(t.updateConfig)
 	for update := range updates {
 		responseMessage := t.handleUpdate(update)
@@ -79,9 +79,9 @@ func (t *Transport) MonitorChannels() {
 			continue
 		}
 
-		chatID = transport.GetChatID(update)
+		userID = transport.GetUserID(update)
 
-		state = t.getState(chatID)
+		state = t.getState(userID)
 		if !responseMessage.SkipDeletion && state.lastMsgID != 0 {
 			deleteMsg := tgbotapi.NewDeleteMessage(TgBotDirectChatID, state.lastMsgID)
 			t.tgBotApi.Send(deleteMsg)
@@ -93,7 +93,7 @@ func (t *Transport) MonitorChannels() {
 			continue
 		}
 		state.lastMsgID = sentMsg.MessageID
-		t.state.Store(chatID, state)
+		t.state.Store(userID, state)
 	}
 }
 

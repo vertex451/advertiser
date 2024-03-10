@@ -5,7 +5,7 @@ package dep_container
 //// RegisterTgBotApi registers RegisterTgBotApi dependency.
 //func RegisterTgBotApi(builder *di.Builder) error {
 //	return builder.Add(di.Def{
-//		Name: tbBotApiDefName,
+//		ID: tbBotApiDefName,
 //		Build: func(ctn di.Container) (interface{}, error) {
 //			cfg := ctn.Get(configDefName).(*config.Config)
 //			tgBotApi, err := tgbotapi.NewBotAPI(cfg.TelegramToken)

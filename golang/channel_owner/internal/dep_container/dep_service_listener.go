@@ -21,7 +21,7 @@ func RegisterListenerService(builder *di.Builder) error {
 			r := ctn.Get(postgresqlDefName).(*postgresql.Repository)
 			uc := usecase.New(r)
 
-			return transport.New(uc, tgBotApi), nil
+			return transport.New(uc, tgBotApi, cfg.Env), nil
 		},
 	})
 }

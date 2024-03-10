@@ -9,8 +9,11 @@ import (
 type AdvertisementStatus string
 
 const (
-	AdsStatusCreated     AdvertisementStatus = "created"
-	AdsStatusPending     AdvertisementStatus = "pending"
+	// AdsStatusCreated - initial status when agency creates an advertisement
+	AdsStatusCreated AdvertisementStatus = "created"
+	// AdsStatusPending - status when agency clicks run button and triggers AdvertisementChannel creation
+	AdsStatusPending AdvertisementStatus = "pending"
+	// AdsStatusRunning - status when AdvertisementChannel entries are created
 	AdsStatusRunning     AdvertisementStatus = "running"
 	AdsStatusPaused      AdvertisementStatus = "paused"
 	AdsStatusOutOfBudget AdvertisementStatus = "out_of_budget"

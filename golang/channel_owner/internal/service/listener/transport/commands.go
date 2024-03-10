@@ -18,29 +18,29 @@ import (
 func (s *Service) NavigateToPage(params transport.CallBackQueryParams) *transport.Msg {
 	switch params.Page {
 	case constants.Start:
-		return s.start(params.ChatID)
+		return s.start(params.UserID)
 	case constants.Back:
-		return s.back(params.ChatID)
+		return s.back(params.UserID)
 
 	case constants.AllTopics:
-		return s.allTopics(params.ChatID)
+		return s.allTopics(params.UserID)
 	case Moderate:
-		return s.moderate(params.ChatID)
+		return s.moderate(params.UserID)
 	case MyChannels:
-		return s.listMyChannels(params.ChatID)
+		return s.listMyChannels(params.UserID)
 	case ListChannelsTopics:
-		return s.listChannelTopics(params.ChatID, params.Variable)
+		return s.listChannelTopics(params.UserID, params.Variable)
 	case EditChannelsTopics:
-		return s.editTopicsPrompt(params.ChatID, params.Variable)
+		return s.editTopicsPrompt(params.UserID, params.Variable)
 	case ModerateDetails:
-		return s.GetAdvertisementDetails(params.ChatID, params.Variable)
+		return s.GetAdvertisementDetails(params.UserID, params.Variable)
 	case PostNow:
-		return s.moderationDecision(params.ChatID, PostNow, params.Variable)
+		return s.moderationDecision(params.UserID, PostNow, params.Variable)
 	case RejectAd:
-		return s.moderationDecision(params.ChatID, RejectAd, params.Variable)
+		return s.moderationDecision(params.UserID, RejectAd, params.Variable)
 
 	default:
-		return s.start(params.ChatID)
+		return s.start(params.UserID)
 	}
 }
 
@@ -198,7 +198,6 @@ func (s *Service) moderate(id int64) *transport.Msg {
 	} else {
 		msg = tgbotapi.NewMessage(id, "Select an advertisement to moderate:")
 		for _, entry := range ads {
-			fmt.Println("### ads", entry)
 			channelButtons = append(channelButtons,
 				tgbotapi.NewInlineKeyboardButtonData(
 					fmt.Sprintf("%s (cpv: %v)", entry.ChannelTitle, entry.AdCostPerView),
@@ -229,7 +228,7 @@ func (s *Service) GetAdvertisementDetails(chatID int64, advertisementChannelID s
 		`
 Target channel: %s
 Advertisement details:
-- Name: %s
+- ID: %s
 - Cost per view: %v USD
 - Message: %s
 `,

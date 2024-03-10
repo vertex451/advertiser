@@ -40,13 +40,18 @@ const (
 type Service struct {
 	uc       listener.UseCase
 	tgBotApi tg_bot_api.TgBotApiProvider
-	state    sync.Map // map[ChatID]stateData
+	state    sync.Map // map[UserID]stateData
 	cron     *cron.Cron
 	tgApi    *tg_api.Service
+	env      string
 }
 
-func New(uc listener.UseCase, tgBotApi tg_bot_api.TgBotApiProvider) *Service {
-	c := cron.New()
+func New(uc listener.UseCase, tgBotApi tg_bot_api.TgBotApiProvider, env string) *Service {
+	c := cron.New(
+		cron.WithParser(
+			cron.NewParser(
+				cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow,
+			)))
 	c.Start()
 
 	return &Service{
@@ -54,6 +59,7 @@ func New(uc listener.UseCase, tgBotApi tg_bot_api.TgBotApiProvider) *Service {
 		uc:       uc,
 		cron:     c,
 		tgApi:    tg_api.New(),
+		env:      env,
 	}
 }
 
@@ -61,7 +67,7 @@ func (s *Service) MonitorChannels() {
 	var err error
 	var sentMsg tgbotapi.Message
 	var state stateData
-	var chatID int64
+	var userID int64
 	updates := s.tgBotApi.GetUpdatesChan()
 	for update := range updates {
 		fmt.Printf("\n### update %+v\n\n", update)
@@ -77,11 +83,11 @@ func (s *Service) MonitorChannels() {
 			continue
 		}
 
-		chatID = transport.GetChatID(update)
+		userID = transport.GetUserID(update)
 
-		state = s.getState(chatID)
+		state = s.getState(userID)
 		if !responseMessage.SkipDeletion && state.lastMsgID != 0 {
-			deleteMsg := tgbotapi.NewDeleteMessage(chatID, state.lastMsgID)
+			deleteMsg := tgbotapi.NewDeleteMessage(userID, state.lastMsgID)
 			s.tgBotApi.Send(deleteMsg)
 		}
 
@@ -91,7 +97,7 @@ func (s *Service) MonitorChannels() {
 			continue
 		}
 		state.lastMsgID = sentMsg.MessageID
-		s.state.Store(chatID, state)
+		s.state.Store(userID, state)
 	}
 }
 
@@ -118,29 +124,30 @@ func (s *Service) handleUpdate(update tgbotapi.Update) *transport.Msg {
 }
 
 func (s *Service) handleCommand(update tgbotapi.Update) *transport.Msg {
+	userID := transport.GetUserID(update)
 	switch update.Message.Command() {
 	case constants.Start:
-		return s.start(update.Message.Chat.ID)
+		return s.start(userID)
 	case constants.AllTopics:
-		return s.allTopics(update.Message.Chat.ID)
+		return s.allTopics(userID)
 	case Moderate:
-		return s.moderate(update.Message.Chat.ID)
+		return s.moderate(userID)
 	}
 	return nil
 }
 
 func (s *Service) handleStateQuery(update tgbotapi.Update) *transport.Msg {
-	chatID := update.Message.Chat.ID
-	state := s.getState(chatID)
+	userID := transport.GetUserID(update)
+	state := s.getState(userID)
 
 	switch state.state {
 	case StateEditTopics:
 		topics := strings.Split(update.Message.Text, ",")
-		return s.editChannelTopics(chatID, state.channelID, topics)
+		return s.editChannelTopics(userID, state.channelID, topics)
 	case StateWaitForRejectReason:
-		return s.saveRejectionReason(chatID, state.adChanID, update.Message.Text)
+		return s.saveRejectionReason(userID, state.adChanID, update.Message.Text)
 	default:
-		return s.start(chatID)
+		return s.start(userID)
 	}
 }
 

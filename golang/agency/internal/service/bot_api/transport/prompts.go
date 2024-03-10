@@ -39,7 +39,7 @@ func (t *Transport) upsertAdPrompt(respondTo int64, variable string, state BotSt
 
 	promptText := fmt.Sprintf(`
 To %s an advertisement, send a message in the following format:
-Name: MyAwesomeAdvertisement
+ID: MyAwesomeAdvertisement
 TargetTopics: topic1, topic2, topic3
 BudgetUSD: 100
 CostPerView: 0.1

@@ -57,7 +57,7 @@ func (t *Transport) resetState(chatID int64) {
 }
 
 func (t *Transport) addCrumbs(params transport.CallBackQueryParams) {
-	rawState, ok := t.state.Load(params.ChatID)
+	rawState, ok := t.state.Load(params.UserID)
 	var state stateData
 	if ok {
 		state = rawState.(stateData)
@@ -69,5 +69,5 @@ func (t *Transport) addCrumbs(params transport.CallBackQueryParams) {
 
 	state.crumbs = append(state.crumbs, params)
 
-	t.state.Store(params.ChatID, state)
+	t.state.Store(params.UserID, state)
 }
