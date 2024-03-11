@@ -1,8 +1,8 @@
 package dep_container
 
 import (
+	"advertiser/shared/config/config"
 	"github.com/sarulabs/di"
-	"tg-bot/internal/config"
 	"tg-bot/internal/service/bot_api/repo/postgresql"
 	"tg-bot/internal/service/bot_api/transport"
 	"tg-bot/internal/service/bot_api/usecase"
@@ -18,7 +18,7 @@ func RegisterTgBotApiService(builder *di.Builder) error {
 			cfg := ctn.Get(configDefName).(*config.Config)
 			r := ctn.Get(postgresqlDefName).(*postgresql.Repository)
 			uc := usecase.New(r)
-			return transport.New(uc, cfg.TelegramToken), nil
+			return transport.New(uc, cfg.Secrets.TelegramToken), nil
 		},
 	})
 }

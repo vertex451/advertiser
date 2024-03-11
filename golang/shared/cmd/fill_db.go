@@ -1,6 +1,7 @@
 package main
 
 import (
+	"advertiser/shared/config/config"
 	"advertiser/shared/pkg/service/repo"
 	"advertiser/shared/pkg/service/repo/models"
 	"fmt"
@@ -9,20 +10,20 @@ import (
 	"gorm.io/gorm"
 )
 
-type repository struct {
+type Repository struct {
 	db *gorm.DB
 }
 
-func New() *repository {
-	db := repo.New("localhost")
+func New(cfg *config.Config) *Repository {
+	db := repo.New(cfg)
 
-	return &repository{
+	return &Repository{
 		db: db,
 	}
 }
 
 func main() {
-	r := New()
+	r := New(config.Load())
 	r.FillTopics()
 	r.fillChannelOwnerData()
 	r.fillAgencyData()
@@ -30,11 +31,11 @@ func main() {
 	fmt.Println("Database filled")
 }
 
-func (r *repository) fillChannelOwnerData() {
+func (r *Repository) fillChannelOwnerData() {
 	r.fillChannels()
 }
 
-func (r *repository) FillTopics() {
+func (r *Repository) FillTopics() {
 	topics := []models.Topic{{ID: "art"}, {ID: "books"}, {ID: "food"}, {ID: "pets"}, {ID: "sport"}}
 
 	for _, topic := range topics {
@@ -45,7 +46,7 @@ func (r *repository) FillTopics() {
 	}
 }
 
-func (r *repository) fillChannels() {
+func (r *Repository) fillChannels() {
 	channels := []models.Channel{
 		{
 			ID:          -1002134289719,
@@ -73,7 +74,7 @@ func (r *repository) fillChannels() {
 	r.fillChannelTopics()
 }
 
-func (r *repository) fillChannelTopics() {
+func (r *Repository) fillChannelTopics() {
 	channelTopics := []models.ChannelTopic{
 		{
 			ChannelID: -1002049183103,
@@ -103,7 +104,7 @@ func (r *repository) fillChannelTopics() {
 	r.fillUsers()
 }
 
-func (r *repository) fillUsers() {
+func (r *Repository) fillUsers() {
 	users := []models.User{
 		{
 			ID:     6761224677,
@@ -125,7 +126,7 @@ func (r *repository) fillUsers() {
 	r.fillChannelAdmins()
 }
 
-func (r *repository) fillChannelAdmins() {
+func (r *Repository) fillChannelAdmins() {
 	admins := []models.ChannelAdmin{
 		{
 			ChannelID: -1002134289719,
@@ -157,11 +158,11 @@ func (r *repository) fillChannelAdmins() {
 	}
 }
 
-func (r *repository) fillAgencyData() {
+func (r *Repository) fillAgencyData() {
 	r.fillCampaigns()
 }
 
-func (r *repository) fillCampaigns() {
+func (r *Repository) fillCampaigns() {
 	campaigns := []models.Campaign{
 		{
 			ID:     uuid.FromStringOrNil("1f97e147-95cd-46c3-b2e1-a2f750a486e8"),
@@ -180,7 +181,7 @@ func (r *repository) fillCampaigns() {
 	r.fillAds()
 }
 
-func (r *repository) fillAds() {
+func (r *Repository) fillAds() {
 	ads := []models.Advertisement{
 		{
 			ID:          uuid.FromStringOrNil("25f9451e-1f65-426f-85ff-7735bc39fc41"),
@@ -203,7 +204,7 @@ func (r *repository) fillAds() {
 	r.fillAdTopics()
 }
 
-func (r *repository) fillAdTopics() {
+func (r *Repository) fillAdTopics() {
 	adTopics := []models.AdvertisementTopic{
 		{
 			AdvertisementID: uuid.FromStringOrNil("25f9451e-1f65-426f-85ff-7735bc39fc41"),

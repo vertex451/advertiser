@@ -1,47 +1,9 @@
 package integration_tests
 
 import (
-	"advertiser/shared/pkg/service/repo"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
-	"testing"
 )
-
-type MyTestSuite struct {
-	suite.Suite
-	updatesChan chan tgbotapi.Update
-	targetChan  chan tgbotapi.Chattable
-}
-
-// SetupTest is called before each test in the suite
-func (suite *MyTestSuite) SetupTest() {
-	// Add setup logic here
-	suite.T().Log("SetupTest: This runs before each test")
-
-	suite.updatesChan = make(chan tgbotapi.Update)
-	suite.targetChan = make(chan tgbotapi.Chattable)
-
-	startChannelOwnerService(suite.updatesChan, suite.targetChan)
-}
-
-// TearDownTest is called after each test in the suite
-func (suite *MyTestSuite) TearDownTest() {
-	// Add teardown logic here
-
-	db := repo.New("localhost")
-	defer deleteTables(db)
-
-	//close(suite.updatesChan)
-	//close(suite.targetChan)
-
-	suite.T().Log("TearDownTest: This runs after each test")
-}
-
-func TestMyTestSuite(t *testing.T) {
-	// Run the test suite
-	suite.Run(t, new(MyTestSuite))
-}
 
 func (suite *MyTestSuite) TestStart() {
 	tc := []testCase{

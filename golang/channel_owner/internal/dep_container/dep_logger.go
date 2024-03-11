@@ -1,7 +1,7 @@
 package dep_container
 
 import (
-	"advertiser/channel_owner/internal/config"
+	"advertiser/shared/config/config"
 	"advertiser/shared/pkg/logger"
 	"github.com/sarulabs/di"
 	"go.uber.org/zap"

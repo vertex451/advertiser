@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"advertiser/shared/config/config"
 	"advertiser/shared/pkg/service/repo/models"
 	"fmt"
 	"go.uber.org/zap"
@@ -22,13 +23,13 @@ func GetAllTables() []interface{} {
 	}
 }
 
-func New(host string) *gorm.DB {
+func New(cfg *config.Config) *gorm.DB {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Warsaw",
-		host,
+		cfg.PostgresHost,
 		"postgres",
 		"postgres",
 		"postgres",
-		"5432",
+		cfg.PostgresPort,
 	)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {

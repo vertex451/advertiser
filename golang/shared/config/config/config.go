@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
-	"go.uber.org/zap"
 	"log"
+	"os"
 )
 
 const (
@@ -28,11 +28,16 @@ type Secrets struct {
 	TelegramToken string `env:"TELEGRAM_TOKEN,required"`
 }
 
-func LoadConfig(filePath string) (*Config, error) {
-	err := godotenv.Load()
+func Load() *Config {
+	path, err := os.Getwd()
 	if err != nil {
-		zap.L().Error("Error loading .env file", zap.Error(err))
-		return nil, err
+		log.Println(err)
+	}
+	fmt.Println(path)
+
+	err = godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %e", err)
 	}
 
 	cfg := Config{}
@@ -41,7 +46,5 @@ func LoadConfig(filePath string) (*Config, error) {
 		log.Fatalf("unable to parse ennvironment variables: %e", err)
 	}
 
-	fmt.Println("### cfg", cfg)
-
-	return &cfg, nil
+	return &cfg
 }

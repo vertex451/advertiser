@@ -1,7 +1,7 @@
 package transport
 
 import (
-	"advertiser/channel_owner/internal/config"
+	"advertiser/shared/config/config"
 	"advertiser/shared/pkg/service/repo/models"
 	"fmt"
 	"go.uber.org/zap"

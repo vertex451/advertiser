@@ -1,10 +1,10 @@
 package dep_container
 
 import (
+	"advertiser/shared/config/config"
 	"advertiser/shared/pkg/logger"
 	"github.com/sarulabs/di"
 	"go.uber.org/zap"
-	"tg-bot/internal/config"
 )
 
 const loggerDefName = "logger"

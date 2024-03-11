@@ -1,10 +1,10 @@
 package dep_container
 
 import (
-	"advertiser/channel_owner/internal/config"
 	"advertiser/channel_owner/internal/service/listener/repo/postgresql"
 	"advertiser/channel_owner/internal/service/listener/transport"
 	"advertiser/channel_owner/internal/service/listener/usecase"
+	"advertiser/shared/config/config"
 	"advertiser/shared/tg_bot_api"
 	"github.com/sarulabs/di"
 )
