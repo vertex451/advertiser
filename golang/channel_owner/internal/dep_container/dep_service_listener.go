@@ -17,7 +17,7 @@ func RegisterListenerService(builder *di.Builder) error {
 		Name: listenerServiceDefName,
 		Build: func(ctn di.Container) (interface{}, error) {
 			cfg := ctn.Get(configDefName).(*config.Config)
-			tgBotApi := tg_bot_api.New(cfg.TelegramToken)
+			tgBotApi := tg_bot_api.New(cfg.Secrets.TelegramToken)
 			r := ctn.Get(postgresqlDefName).(*postgresql.Repository)
 			uc := usecase.New(r)
 

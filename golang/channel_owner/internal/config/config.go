@@ -1,12 +1,11 @@
 package config
 
 import (
+	"fmt"
 	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"log"
-	"os"
 )
 
 const (
@@ -16,11 +15,17 @@ const (
 )
 
 type Config struct {
-	PostgresHost string
-	LogLevel     string
+	Env      string `env:"ENV" envDefault:"dev"`
+	LogLevel string `env:"LOG_LEVEL" envDefault:"DEBUG"`
 
-	TelegramToken string
-	Env           string
+	PostgresHost string `env:"POSTGRES_HOST" envDefault:"localhost"`
+	PostgresPort string `env:"POSTGRES_PORT" envDefault:"5432"`
+
+	Secrets Secrets
+}
+
+type Secrets struct {
+	TelegramToken string `env:"TELEGRAM_TOKEN,required"`
 }
 
 func LoadConfig(filePath string) (*Config, error) {
@@ -30,30 +35,13 @@ func LoadConfig(filePath string) (*Config, error) {
 		return nil, err
 	}
 
-	cfg := Config{} // 👈 new instance of `Config`
-
-	err = env.Parse(&cfg) // 👈 Parse environment variables into `Config`
+	cfg := Config{}
+	err = env.Parse(&cfg) // Parse environment variables into `Config`
 	if err != nil {
 		log.Fatalf("unable to parse ennvironment variables: %e", err)
 	}
 
-	postgresHost := os.Getenv("POSTGRES_HOST")
-	if postgresHost == "" {
-		postgresHost = "localhost"
-	}
-	cfg.PostgresHost = postgresHost
-
-	// set sensitive data
-	telegramToken := os.Getenv("TELEGRAM_TOKEN")
-	if telegramToken == "" {
-		return nil, errors.New("TELEGRAM_TOKEN is not set")
-	}
-	cfg.TelegramToken = telegramToken
-
-	cfg.Env = os.Getenv("ENV")
-	if cfg.Env == "" {
-		cfg.Env = EnvDev
-	}
+	fmt.Println("### cfg", cfg)
 
 	return &cfg, nil
 }

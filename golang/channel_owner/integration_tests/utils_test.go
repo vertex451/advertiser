@@ -9,7 +9,6 @@ import (
 	"advertiser/shared/pkg/logger"
 	"advertiser/shared/pkg/service/repo"
 	"advertiser/shared/pkg/service/repo/models"
-	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -40,7 +39,6 @@ func startChannelOwnerService(updatesChan chan tgbotapi.Update, targetChan chan 
 }
 
 func deleteTables(db *gorm.DB) {
-	fmt.Println("### deleteTables!")
 	var err error
 	for _, table := range repo.GetAllTables() {
 		err = db.Migrator().DropTable(table)
@@ -58,5 +56,44 @@ func fillTopics(db *gorm.DB) {
 		if result.Error != nil {
 			zap.L().Panic("failed to create topic", zap.Error(result.Error))
 		}
+	}
+}
+
+func (suite *MyTestSuite) PrepareModerationTest() {
+	suite.updatesChan <- *botIsAddedToChannelUpdate()
+	<-suite.targetChan
+
+	suite.updatesChan <- *editTopicsCallbackUpdate()
+	<-suite.targetChan
+	suite.updatesChan <- *editTopicsMessageUpdate()
+	<-suite.targetChan
+
+	cfg, err := config.LoadConfig(".env")
+	if err != nil {
+		zap.L().Panic("error loading config", zap.Error(err))
+	}
+	r := postgresql.New(cfg)
+
+	testCampaign := models.Campaign{
+		UserID: mocks.ChannelCreator.ID,
+		Name:   "TestCampaign",
+	}
+
+	err = r.Db.Create(&testCampaign).Error
+	if err != nil {
+		zap.L().Panic("failed to create test campaign", zap.Error(err))
+	}
+	testAd := models.Advertisement{
+		CampaignID:   testCampaign.ID,
+		Name:         "testAd",
+		TargetTopics: []models.Topic{{ID: "food"}},
+		Message:      "Visit our restaurant!",
+		Status:       models.AdsStatusPending,
+		Budget:       100,
+		CostPerView:  0.01,
+	}
+	err = r.Db.Create(&testAd).Error
+	if err != nil {
+		zap.L().Panic("failed to create test ad", zap.Error(err))
 	}
 }

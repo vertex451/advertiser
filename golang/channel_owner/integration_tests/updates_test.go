@@ -18,7 +18,7 @@ type bot struct {
 
 type testCase struct {
 	testName        string
-	update          tgbotapi.Update
+	update          *tgbotapi.Update
 	expectedMsgText string
 	expectedButtons []tgbotapi.InlineKeyboardButton
 }
@@ -28,8 +28,8 @@ var (
 	testBot     = bot{id: 6406834985}
 )
 
-func startCommandUpdate() tgbotapi.Update {
-	return tgbotapi.Update{
+func startCommandUpdate() *tgbotapi.Update {
+	return &tgbotapi.Update{
 		Message: &tgbotapi.Message{
 			From:     &tgbotapi.User{ID: mocks.ChannelCreator.ID},
 			Entities: []tgbotapi.MessageEntity{{Type: "bot_command", Length: len(constants.Start) + 1}},
@@ -37,8 +37,8 @@ func startCommandUpdate() tgbotapi.Update {
 	}
 }
 
-func startCallbackUpdate() tgbotapi.Update {
-	return tgbotapi.Update{
+func startCallbackUpdate() *tgbotapi.Update {
+	return &tgbotapi.Update{
 		CallbackQuery: &tgbotapi.CallbackQuery{
 			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
 			Data: constants.Start,
@@ -46,8 +46,8 @@ func startCallbackUpdate() tgbotapi.Update {
 	}
 }
 
-func allTopicsCommandUpdate() tgbotapi.Update {
-	return tgbotapi.Update{
+func allTopicsCommandUpdate() *tgbotapi.Update {
+	return &tgbotapi.Update{
 		Message: &tgbotapi.Message{
 			From:     &tgbotapi.User{ID: mocks.ChannelCreator.ID},
 			Entities: []tgbotapi.MessageEntity{{Type: "bot_command", Length: len(constants.AllTopics) + 1}},
@@ -55,8 +55,8 @@ func allTopicsCommandUpdate() tgbotapi.Update {
 	}
 }
 
-func allTopicsCallbackUpdate() tgbotapi.Update {
-	return tgbotapi.Update{
+func allTopicsCallbackUpdate() *tgbotapi.Update {
+	return &tgbotapi.Update{
 		CallbackQuery: &tgbotapi.CallbackQuery{
 			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
 			Data: constants.AllTopics,
@@ -64,8 +64,8 @@ func allTopicsCallbackUpdate() tgbotapi.Update {
 	}
 }
 
-func botIsAddedToChannelUpdate() tgbotapi.Update {
-	return tgbotapi.Update{
+func botIsAddedToChannelUpdate() *tgbotapi.Update {
+	return &tgbotapi.Update{
 		MyChatMember: &tgbotapi.ChatMemberUpdated{
 			Chat: tgbotapi.Chat{
 				ID:       testChannel.id,
@@ -86,8 +86,8 @@ func botIsAddedToChannelUpdate() tgbotapi.Update {
 	}
 }
 
-func myChannelsCallbackUpdate() tgbotapi.Update {
-	return tgbotapi.Update{
+func myChannelsCallbackUpdate() *tgbotapi.Update {
+	return &tgbotapi.Update{
 		CallbackQuery: &tgbotapi.CallbackQuery{
 			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
 			Data: transport.MyChannels,
@@ -95,8 +95,8 @@ func myChannelsCallbackUpdate() tgbotapi.Update {
 	}
 }
 
-func editTopicsCallbackUpdate() tgbotapi.Update {
-	return tgbotapi.Update{
+func editTopicsCallbackUpdate() *tgbotapi.Update {
+	return &tgbotapi.Update{
 		CallbackQuery: &tgbotapi.CallbackQuery{
 			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
 			Data: fmt.Sprintf("%s/%d", transport.EditChannelsTopics, testChannel.id),
@@ -104,8 +104,8 @@ func editTopicsCallbackUpdate() tgbotapi.Update {
 	}
 }
 
-func editTopicsMessageUpdate() tgbotapi.Update {
-	return tgbotapi.Update{
+func editTopicsMessageUpdate() *tgbotapi.Update {
+	return &tgbotapi.Update{
 		Message: &tgbotapi.Message{
 			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
 			Text: "art, books, food, pets, sport",
@@ -113,8 +113,8 @@ func editTopicsMessageUpdate() tgbotapi.Update {
 	}
 }
 
-func botIsRemovedFromChannelUpdate() tgbotapi.Update {
-	return tgbotapi.Update{
+func botIsRemovedFromChannelUpdate() *tgbotapi.Update {
+	return &tgbotapi.Update{
 		MyChatMember: &tgbotapi.ChatMemberUpdated{
 			Chat: tgbotapi.Chat{
 				ID:       testChannel.id,
@@ -130,5 +130,23 @@ func botIsRemovedFromChannelUpdate() tgbotapi.Update {
 				Status: transport.StatusLeft,
 			},
 		},
+	}
+}
+
+func moderateCallbackUpdate() *tgbotapi.Update {
+	return &tgbotapi.Update{
+		CallbackQuery: &tgbotapi.CallbackQuery{
+			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			Data: transport.Moderate,
+		},
+	}
+}
+
+func moderateCommandUpdate() *tgbotapi.Update {
+	return &tgbotapi.Update{
+		Message: &tgbotapi.Message{
+			From:     &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			Entities: []tgbotapi.MessageEntity{{Type: "bot_command", Length: len(transport.Moderate) + 1}},
+			Text:     fmt.Sprintf("/%s", transport.Moderate)},
 	}
 }

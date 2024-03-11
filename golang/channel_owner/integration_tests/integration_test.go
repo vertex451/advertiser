@@ -1,15 +1,10 @@
 package integration_tests
 
 import (
-	"advertiser/channel_owner/internal/config"
-	"advertiser/channel_owner/internal/service/listener/repo/postgresql"
-	"advertiser/channel_owner/internal/service/listener/transport/mocks"
 	"advertiser/shared/pkg/service/repo"
-	"advertiser/shared/pkg/service/repo/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"go.uber.org/zap"
 	"testing"
 )
 
@@ -64,7 +59,7 @@ func (suite *MyTestSuite) TestStart() {
 
 	for _, tt := range tc {
 		suite.Run(tt.testName, func() {
-			suite.updatesChan <- tt.update
+			suite.updatesChan <- *tt.update
 			msgRaw, _ := <-suite.targetChan
 			msg := msgRaw.(tgbotapi.MessageConfig)
 			assert.Equal(suite.T(), tt.expectedMsgText, msg.Text)
@@ -95,7 +90,7 @@ func (suite *MyTestSuite) TestAllTopics() {
 
 	for _, tt := range tc {
 		suite.Run(tt.testName, func() {
-			suite.updatesChan <- allTopicsCallbackUpdate()
+			suite.updatesChan <- *tt.update
 			msgRaw, _ := <-suite.targetChan
 			msg := msgRaw.(tgbotapi.MessageConfig)
 			assert.Equal(suite.T(),
@@ -146,7 +141,7 @@ art, books, food, pets, sport
 
 	for _, tt := range tc {
 		suite.Run(tt.testName, func() {
-			suite.updatesChan <- tt.update
+			suite.updatesChan <- *tt.update
 			msgRaw, _ := <-suite.targetChan
 			msg := msgRaw.(tgbotapi.MessageConfig)
 			assert.Equal(suite.T(), tt.expectedMsgText, msg.Text)
@@ -155,48 +150,37 @@ art, books, food, pets, sport
 }
 
 func (suite *MyTestSuite) TestModerationAndAdPosting() {
-	suite.updatesChan <- botIsAddedToChannelUpdate()
-	<-suite.targetChan
+	suite.PrepareModerationTest()
 
-	suite.updatesChan <- editTopicsCallbackUpdate()
-	<-suite.targetChan
-	suite.updatesChan <- editTopicsMessageUpdate()
-	<-suite.targetChan
-
-	cfg, err := config.LoadConfig(".env")
-	if err != nil {
-		zap.L().Panic("error loading config", zap.Error(err))
-	}
-	r := postgresql.New(cfg)
-
-	testCampaign := models.Campaign{
-		UserID: mocks.ChannelCreator.ID,
-		Name:   "TestCampaign",
-	}
-
-	err = r.Db.Create(&testCampaign).Error
-	if err != nil {
-		zap.L().Panic("failed to create test campaign", zap.Error(err))
-	}
-	testAd := models.Advertisement{
-		CampaignID:   testCampaign.ID,
-		Name:         "testAd",
-		TargetTopics: []models.Topic{{ID: "food"}},
-		Message:      "Visit our restaurant!",
-		Status:       models.AdsStatusPending,
-		Budget:       100,
-		CostPerView:  0.01,
-	}
-	err = r.Db.Create(&testAd).Error
-	if err != nil {
-		zap.L().Panic("failed to create test ad", zap.Error(err))
-	}
-
-	msgRaw, _ := <-suite.targetChan
-	msg := msgRaw.(tgbotapi.MessageConfig)
-	assert.Equal(suite.T(), `
+	tc := []testCase{
+		{
+			testName: "TestModerateNotification",
+			update:   nil,
+			expectedMsgText: `
 You have 1 advertisements to moderate.
 Click on /moderate to view them.
-`, msg.Text)
+`,
+		},
+		{
+			testName:        "TestModerateCommand",
+			update:          moderateCommandUpdate(),
+			expectedMsgText: "Select an advertisement to moderate:",
+		},
+		{
+			testName:        "TestModerateCallback",
+			update:          moderateCallbackUpdate(),
+			expectedMsgText: "Select an advertisement to moderate:",
+		},
+	}
 
+	for _, tt := range tc {
+		suite.Run(tt.testName, func() {
+			if tt.update != nil {
+				suite.updatesChan <- *tt.update
+			}
+			msgRaw, _ := <-suite.targetChan
+			msg := msgRaw.(tgbotapi.MessageConfig)
+			assert.Equal(suite.T(), tt.expectedMsgText, msg.Text)
+		})
+	}
 }
