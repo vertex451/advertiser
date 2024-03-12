@@ -133,7 +133,7 @@ func (t *Transport) campaignDetails(respondTo int64, rawCampaignID string) *tran
 					ad.Name, fmt.Sprintf("%s/%s", AdDetails, ad.ID)),
 			)
 		}
-		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("%s advertisements", campaignDetails.Name))
+		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("%s advertisements:", campaignDetails.Name))
 	} else {
 		msg = tgbotapi.NewMessage(respondTo, "You don't have advertisements yet")
 	}
@@ -171,9 +171,9 @@ func (t *Transport) upsertAd(respondTo int64, campaignID, adID, input string) *t
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to create an Ad. Error: %v", err))
 	} else {
 		if ad.ID == uuid.Nil {
-			msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Advertisement %s created!", ad.Name))
+			msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Advertisement '%s' created!", ad.Name))
 		} else {
-			msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Advertisement %s updated!!", ad.Name))
+			msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Advertisement '%s' updated!!", ad.Name))
 		}
 	}
 
@@ -206,7 +206,7 @@ func (t *Transport) GetAdDetails(respondTo int64, rawID string) *transport.Msg {
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to get advertisement details. Error: %v", err))
 	} else {
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf(`
-ID: %s
+Name: %s
 Status: %s
 TargetTopics: %s
 BudgetUSD: %v
@@ -305,7 +305,7 @@ func parseAndValidateCreateAdInput(rawCampaignID, rawAdID, rawInput string) (*mo
 
 	for key, value := range params {
 		switch key {
-		case "ID":
+		case "Name":
 			ad.Name = value
 		case "BudgetUSD":
 			budget := 0

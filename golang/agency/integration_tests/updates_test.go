@@ -2,7 +2,6 @@ package integration_tests
 
 import (
 	"advertiser/shared/pkg/service/constants"
-	"advertiser/shared/pkg/service/repo/models"
 	mocks "advertiser/shared/tg_bot_api/mocks"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -94,15 +93,7 @@ func myCampaignsCallbackUpdate(data string) *tgbotapi.Update {
 	}
 }
 
-func getCampaignID(db *gorm.DB) string {
-	var campaign models.Campaign
-	db.First(&campaign)
-
-	return campaign.ID.String()
-}
-
 func createAdCallbackUpdate(campaignID string) *tgbotapi.Update {
-	fmt.Println("### campaignID", campaignID)
 	return &tgbotapi.Update{
 		CallbackQuery: &tgbotapi.CallbackQuery{
 			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
@@ -121,6 +112,33 @@ TargetTopics: art, food
 BudgetUSD: 100
 CostPerView: 0.1
 Message: Follow this [link](https://www.investing.com/) to find more about investments!`,
+		},
+	}
+}
+
+func campaignDetailsCallbackUpdate(campaignID string) *tgbotapi.Update {
+	return &tgbotapi.Update{
+		CallbackQuery: &tgbotapi.CallbackQuery{
+			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			Data: fmt.Sprintf("%s/%s", transport.CampaignDetails, campaignID),
+		},
+	}
+}
+
+func adDetailsCallbackUpdate(adID string) *tgbotapi.Update {
+	return &tgbotapi.Update{
+		CallbackQuery: &tgbotapi.CallbackQuery{
+			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			Data: fmt.Sprintf("%s/%s", transport.AdDetails, adID),
+		},
+	}
+}
+
+func runAdCallbackUpdate(adID string) *tgbotapi.Update {
+	return &tgbotapi.Update{
+		CallbackQuery: &tgbotapi.CallbackQuery{
+			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			Data: fmt.Sprintf("%s/%s", transport.RunAd, adID),
 		},
 	}
 }

@@ -60,6 +60,7 @@ sport: 0 subscribers`,
 	}
 }
 
+// TestCreateCampaign is state dependant test, single TC may fail if run separately
 func (suite *MyTestSuite) TestCreateCampaign() {
 	tc := []testCase{
 		{
@@ -67,17 +68,17 @@ func (suite *MyTestSuite) TestCreateCampaign() {
 			update:          createCampaignCallbackUpdate,
 			expectedMsgText: "Enter campaign name:",
 		},
-		{ // state dependant test
+		{
 			testName:        "TestCreateCampaignMessage",
 			update:          createCampaignMessageUpdate,
 			expectedMsgText: "Campaign Food created!",
 		},
-		{ // state dependant test
+		{
 			testName:        "TestMyCampaigns",
 			update:          myCampaignsCallbackUpdate,
 			expectedMsgText: "Select a campaign:",
 		},
-		{ // state dependant test
+		{
 			testName: "TestCreateAdvertisement",
 			preHook:  getCampaignID,
 			update:   createAdCallbackUpdate,
@@ -90,10 +91,36 @@ CostPerView: 0.1
 Message: Follow this [link](https://www.investing.com/) to find more about investments!
 `,
 		},
-		{ // state dependant test
+		{
 			testName:        "TestCreateAdvertisementMessage",
 			update:          createAdMessageUpdate,
-			expectedMsgText: "Advertisement  created!",
+			expectedMsgText: "Advertisement 'Stock market' created!",
+		},
+		{
+			testName:        "TestCampaignDetails",
+			preHook:         getCampaignID,
+			update:          campaignDetailsCallbackUpdate,
+			expectedMsgText: "Food advertisements:",
+		},
+		{
+			testName: "TestAdDetails",
+			preHook:  getAdID,
+			update:   adDetailsCallbackUpdate,
+			expectedMsgText: `
+Name: Stock market
+Status: created
+TargetTopics: art, food
+BudgetUSD: 100
+Message: Follow this [link](https://www.investing.com/) to find more about investments!
+
+Total members: 0
+`,
+		},
+		{
+			testName:        "TestRunAd",
+			preHook:         getAdID,
+			update:          runAdCallbackUpdate,
+			expectedMsgText: "Advertising is running! It will start appearing in channels after an approval from channel owners",
 		},
 	}
 

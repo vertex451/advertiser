@@ -92,3 +92,17 @@ func fillTopics(db *gorm.DB) {
 		}
 	}
 }
+
+func getCampaignID(db *gorm.DB) string {
+	var campaign models.Campaign
+	db.First(&campaign)
+
+	return campaign.ID.String()
+}
+
+func getAdID(db *gorm.DB) string {
+	var ad models.Advertisement
+	db.First(&ad)
+
+	return ad.ID.String()
+}
