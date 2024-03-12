@@ -36,17 +36,17 @@ func (suite *MyTestSuite) TestAllTopics() {
 			testName: "TestAllTopicsCommand",
 			update:   allTopicsCommandUpdate(),
 			expectedMsgText: `
-	Supported topics:
-	art, books, food, pets, sport
-	`,
+Supported topics:
+art, books, food, pets, sport
+`,
 		},
 		{
 			testName: "TestAllTopicsCallback",
 			update:   allTopicsCallbackUpdate(),
 			expectedMsgText: `
-	Supported topics:
-	art, books, food, pets, sport
-	`,
+Supported topics:
+art, books, food, pets, sport
+`,
 		},
 	}
 
@@ -55,11 +55,7 @@ func (suite *MyTestSuite) TestAllTopics() {
 			suite.updatesChan <- *tt.update
 			msgRaw, _ := <-suite.targetChan
 			msg := msgRaw.(tgbotapi.MessageConfig)
-			assert.Equal(suite.T(),
-				`
-Supported topics:
-art, books, food, pets, sport
-`, msg.Text)
+			assert.Equal(suite.T(), tt.expectedMsgText, msg.Text)
 		})
 	}
 }

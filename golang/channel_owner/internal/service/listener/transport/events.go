@@ -9,12 +9,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-const (
-	StatusAdministrator = "administrator"
-	StatusCreator       = "creator"
-	StatusLeft          = "left"
-)
-
 func (s *Service) handleBotIsAddedToAdminsEvent(myChatMember *tgbotapi.ChatMemberUpdated) *transport.Msg {
 	var err error
 	var msg tgbotapi.MessageConfig

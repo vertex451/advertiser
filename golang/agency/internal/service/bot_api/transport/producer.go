@@ -21,10 +21,8 @@ func (t *Transport) allTopicsWithCoverage(respondTo int64) *transport.Msg {
 		msg = tgbotapi.NewMessage(respondTo, "failed to list topics")
 	} else {
 		var res []string
-		for topic, coverage := range topics {
-			if coverage > 0 {
-				res = append(res, fmt.Sprintf("%s: %v subscribers", topic, coverage))
-			}
+		for _, topic := range topics {
+			res = append(res, fmt.Sprintf("%s: %v subscribers", topic.Name, topic.Coverage))
 		}
 		msg = tgbotapi.NewMessage(respondTo, strings.Join(res, "\n"))
 	}
@@ -46,7 +44,7 @@ func (t *Transport) createCampaign(respondTo int64, campaignName string) *transp
 		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Failed to create campaign. Error: %v", err))
 		msg = transport.AddNavigationButtons(msg, nil)
 	} else {
-		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Campaing %s created!", campaignName))
+		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Campaign %s created!", campaignName))
 		msg = transport.AddNavigationButtons(msg, tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData(
 				fmt.Sprintf("Create my first Ad in %s", campaignName),
@@ -279,7 +277,7 @@ func (t *Transport) RunAd(respondTo int64, rawID string) *transport.Msg {
 }
 
 func parseAndValidateCreateAdInput(rawCampaignID, rawAdID, rawInput string) (*models.Advertisement, error) {
-	requiredFields := []string{"ID", "TargetTopics", "BudgetUSD", "CostPerView", "Message"}
+	requiredFields := []string{"Name", "TargetTopics", "BudgetUSD", "CostPerView", "Message"}
 
 	params := parseValues(rawInput)
 	for _, field := range requiredFields {
@@ -347,11 +345,11 @@ func parseValues(input string) map[string]string {
 	lines := strings.Split(input, "\n")
 	for _, line := range lines {
 		parts := strings.Split(line, ":")
-		if len(parts) != 2 {
+		if len(parts) < 2 {
 			continue
 		}
 		key := strings.TrimSpace(parts[0])
-		value := strings.TrimSpace(parts[1])
+		value := strings.TrimSpace(strings.Join(parts[1:], ":"))
 		values[key] = value
 	}
 

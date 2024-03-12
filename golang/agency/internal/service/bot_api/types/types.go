@@ -17,3 +17,8 @@ type Advertisement struct {
 	Message  string
 	Status   models.AdvertisementStatus
 }
+
+type TopicWithCoverage struct {
+	Name     string
+	Coverage int
+}

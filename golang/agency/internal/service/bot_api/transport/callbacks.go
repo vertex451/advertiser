@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"advertiser/shared/pkg/service/constants"
 	"advertiser/shared/pkg/service/transport"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -8,7 +9,7 @@ import (
 func (t *Transport) handleCallbackQuery(query *tgbotapi.CallbackQuery) *transport.Msg {
 	params := transport.ParseCallBackQuery(query)
 
-	if params.Page != Back {
+	if params.Page != constants.Back {
 		t.addCrumbs(params)
 	}
 
@@ -17,9 +18,9 @@ func (t *Transport) handleCallbackQuery(query *tgbotapi.CallbackQuery) *transpor
 
 func (t *Transport) NavigateToPage(params transport.CallBackQueryParams) *transport.Msg {
 	switch params.Page {
-	case Start:
+	case constants.Start:
 		return t.start(params.UserID)
-	case Back:
+	case constants.Back:
 		return t.back(params.UserID)
 
 	case AllTopicsWithCoverage:

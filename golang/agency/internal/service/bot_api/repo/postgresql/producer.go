@@ -48,6 +48,13 @@ GROUP BY t.id;
 }
 
 func (r *Repository) CreateCampaign(userID int64, campaignName string) (uuid.UUID, error) {
+	var admin models.User
+	if tx := r.Db.FirstOrCreate(&admin, models.User{
+		ID: userID,
+	}); tx.Error != nil {
+		return uuid.Nil, tx.Error
+	}
+
 	campaign := models.Campaign{
 		Name:   campaignName,
 		UserID: userID,

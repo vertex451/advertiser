@@ -9,12 +9,12 @@ import (
 	"github.com/sarulabs/di"
 )
 
-const listenerServiceDefName = "listener-service"
+const channelOwnerServiceDefName = "channel-owner-service"
 
 // RegisterListenerService registers RegisterListenerService dependency.
 func RegisterListenerService(builder *di.Builder) error {
 	return builder.Add(di.Def{
-		Name: listenerServiceDefName,
+		Name: channelOwnerServiceDefName,
 		Build: func(ctn di.Container) (interface{}, error) {
 			cfg := ctn.Get(configDefName).(*config.Config)
 			tgBotApi := tg_bot_api.New(cfg.Secrets.TelegramToken)
@@ -28,10 +28,10 @@ func RegisterListenerService(builder *di.Builder) error {
 
 // MonitorChannels runs MonitorChannels dependency.
 func (c Container) MonitorChannels() {
-	c.container.Get(listenerServiceDefName).(*transport.Service).MonitorChannels()
+	c.container.Get(channelOwnerServiceDefName).(*transport.Service).MonitorChannels()
 }
 
 // RunNotificationService runs RunNotificationService dependency.
 func (c Container) RunNotificationService() {
-	c.container.Get(listenerServiceDefName).(*transport.Service).RunNotificationService()
+	c.container.Get(channelOwnerServiceDefName).(*transport.Service).RunNotificationService()
 }

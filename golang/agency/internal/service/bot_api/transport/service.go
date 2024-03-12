@@ -3,6 +3,7 @@ package transport
 import (
 	"advertiser/shared/pkg/service/constants"
 	"advertiser/shared/pkg/service/transport"
+	"advertiser/shared/tg_bot_api"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
 	"sync"
@@ -15,9 +16,6 @@ const (
 
 // Commands:
 const (
-	Start = "start"
-	Back  = "back"
-
 	AllTopicsWithCoverage = "all_topics_with_coverage"
 	CreateCampaign        = "create_campaign"
 	MyCampaigns           = "my_campaigns"
@@ -41,29 +39,20 @@ const (
 )
 
 type Transport struct {
-	tgBotApi     *tgbotapi.BotAPI
+	tgBotApi     tg_bot_api.TgBotApiProvider
 	uc           bot_api.UseCase
 	updateConfig tgbotapi.UpdateConfig
 	state        sync.Map // map[UserID]stateData
-	lastMsgID    int
+	env          string
 }
 
-func New(uc bot_api.UseCase, tgToken string) *Transport {
-	tgBotApi, err := tgbotapi.NewBotAPI(tgToken)
-	if err != nil {
-		panic(err)
-	}
-	tgBotApi.Debug = true
-
-	updateConfig := tgbotapi.NewUpdate(0)
-	updateConfig.Timeout = 30
-
+func New(uc bot_api.UseCase, tgBotApi tg_bot_api.TgBotApiProvider, env string) *Transport {
 	zap.L().Info("Started Transport")
 
 	return &Transport{
-		tgBotApi:     tgBotApi,
-		uc:           uc,
-		updateConfig: updateConfig,
+		tgBotApi: tgBotApi,
+		uc:       uc,
+		env:      env,
 	}
 }
 
@@ -72,7 +61,7 @@ func (t *Transport) MonitorChannels() {
 	var sentMsg tgbotapi.Message
 	var state stateData
 	var userID int64
-	updates := t.tgBotApi.GetUpdatesChan(t.updateConfig)
+	updates := t.tgBotApi.GetUpdatesChan()
 	for update := range updates {
 		responseMessage := t.handleUpdate(update)
 		if responseMessage == nil {
@@ -99,13 +88,14 @@ func (t *Transport) MonitorChannels() {
 
 // TODO add rate limiter
 func (t *Transport) handleUpdate(update tgbotapi.Update) *transport.Msg {
+	userID := transport.GetUserID(update)
 	if update.Message != nil {
 		if update.Message.IsCommand() {
 			switch update.Message.Command() {
-			case Start:
-				return t.start(update.Message.Chat.ID)
+			case constants.Start:
+				return t.start(userID)
 			case constants.AllTopics:
-				return t.allTopics(update.Message.Chat.ID)
+				return t.allTopics(userID)
 			}
 
 		}

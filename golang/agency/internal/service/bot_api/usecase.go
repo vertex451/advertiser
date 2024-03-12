@@ -8,7 +8,7 @@ import (
 
 type UseCase interface {
 	AllTopics() (res []string)
-	AllTopicsWithCoverage() (map[string]int, error)
+	AllTopicsWithCoverage() ([]types.TopicWithCoverage, error)
 	CreateCampaign(respondTo int64, campaignName string) (uuid.UUID, error)
 	ListMyCampaigns(userID int64) ([]models.Campaign, error)
 	CampaignDetails(campaignID uuid.UUID) (*models.Campaign, error)

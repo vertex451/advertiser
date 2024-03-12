@@ -2,8 +2,8 @@ package integration_tests
 
 import (
 	"advertiser/channel_owner/internal/service/listener/transport"
-	"advertiser/channel_owner/internal/service/listener/transport/mocks"
 	"advertiser/shared/pkg/service/constants"
+	"advertiser/shared/tg_bot_api/mocks"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -31,7 +31,7 @@ var (
 func startCommandUpdate() *tgbotapi.Update {
 	return &tgbotapi.Update{
 		Message: &tgbotapi.Message{
-			From:     &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			From:     &tgbotapi.User{ID: tgBotApiMock.ChannelCreator.ID},
 			Entities: []tgbotapi.MessageEntity{{Type: "bot_command", Length: len(constants.Start) + 1}},
 			Text:     fmt.Sprintf("/%s", constants.Start)},
 	}
@@ -40,7 +40,7 @@ func startCommandUpdate() *tgbotapi.Update {
 func startCallbackUpdate() *tgbotapi.Update {
 	return &tgbotapi.Update{
 		CallbackQuery: &tgbotapi.CallbackQuery{
-			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			From: &tgbotapi.User{ID: tgBotApiMock.ChannelCreator.ID},
 			Data: constants.Start,
 		},
 	}
@@ -49,7 +49,7 @@ func startCallbackUpdate() *tgbotapi.Update {
 func allTopicsCommandUpdate() *tgbotapi.Update {
 	return &tgbotapi.Update{
 		Message: &tgbotapi.Message{
-			From:     &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			From:     &tgbotapi.User{ID: tgBotApiMock.ChannelCreator.ID},
 			Entities: []tgbotapi.MessageEntity{{Type: "bot_command", Length: len(constants.AllTopics) + 1}},
 			Text:     fmt.Sprintf("/%s", constants.AllTopics)},
 	}
@@ -58,7 +58,7 @@ func allTopicsCommandUpdate() *tgbotapi.Update {
 func allTopicsCallbackUpdate() *tgbotapi.Update {
 	return &tgbotapi.Update{
 		CallbackQuery: &tgbotapi.CallbackQuery{
-			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			From: &tgbotapi.User{ID: tgBotApiMock.ChannelCreator.ID},
 			Data: constants.AllTopics,
 		},
 	}
@@ -78,7 +78,7 @@ func botIsAddedToChannelUpdate() *tgbotapi.Update {
 					ID:       testBot.id,
 					UserName: transport.ChannelMonetizerBotName,
 				},
-				Status:            transport.StatusAdministrator,
+				Status:            constants.StatusAdministrator,
 				CanPostMessages:   true,
 				CanDeleteMessages: true,
 			},
@@ -89,7 +89,7 @@ func botIsAddedToChannelUpdate() *tgbotapi.Update {
 func myChannelsCallbackUpdate() *tgbotapi.Update {
 	return &tgbotapi.Update{
 		CallbackQuery: &tgbotapi.CallbackQuery{
-			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			From: &tgbotapi.User{ID: tgBotApiMock.ChannelCreator.ID},
 			Data: transport.MyChannels,
 		},
 	}
@@ -98,7 +98,7 @@ func myChannelsCallbackUpdate() *tgbotapi.Update {
 func editTopicsCallbackUpdate() *tgbotapi.Update {
 	return &tgbotapi.Update{
 		CallbackQuery: &tgbotapi.CallbackQuery{
-			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			From: &tgbotapi.User{ID: tgBotApiMock.ChannelCreator.ID},
 			Data: fmt.Sprintf("%s/%d", transport.EditChannelsTopics, testChannel.id),
 		},
 	}
@@ -107,7 +107,7 @@ func editTopicsCallbackUpdate() *tgbotapi.Update {
 func editTopicsMessageUpdate() *tgbotapi.Update {
 	return &tgbotapi.Update{
 		Message: &tgbotapi.Message{
-			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			From: &tgbotapi.User{ID: tgBotApiMock.ChannelCreator.ID},
 			Text: "art, books, food, pets, sport",
 		},
 	}
@@ -127,7 +127,7 @@ func botIsRemovedFromChannelUpdate() *tgbotapi.Update {
 					ID:       testBot.id,
 					UserName: transport.ChannelMonetizerBotName,
 				},
-				Status: transport.StatusLeft,
+				Status: constants.StatusLeft,
 			},
 		},
 	}
@@ -136,7 +136,7 @@ func botIsRemovedFromChannelUpdate() *tgbotapi.Update {
 func moderateCallbackUpdate() *tgbotapi.Update {
 	return &tgbotapi.Update{
 		CallbackQuery: &tgbotapi.CallbackQuery{
-			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			From: &tgbotapi.User{ID: tgBotApiMock.ChannelCreator.ID},
 			Data: transport.Moderate,
 		},
 	}
@@ -145,7 +145,7 @@ func moderateCallbackUpdate() *tgbotapi.Update {
 func moderateCommandUpdate() *tgbotapi.Update {
 	return &tgbotapi.Update{
 		Message: &tgbotapi.Message{
-			From:     &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			From:     &tgbotapi.User{ID: tgBotApiMock.ChannelCreator.ID},
 			Entities: []tgbotapi.MessageEntity{{Type: "bot_command", Length: len(transport.Moderate) + 1}},
 			Text:     fmt.Sprintf("/%s", transport.Moderate)},
 	}

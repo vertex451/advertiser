@@ -1,19 +1,21 @@
 package integration_tests
 
 import (
-	"advertiser/channel_owner/internal/service/listener/repo/postgresql"
-	"advertiser/channel_owner/internal/service/listener/transport"
-	"advertiser/channel_owner/internal/service/listener/usecase"
-	"advertiser/shared/config/config"
-	"advertiser/shared/pkg/logger"
-	"advertiser/shared/pkg/service/repo"
-	"advertiser/shared/pkg/service/repo/models"
-	"advertiser/shared/tg_bot_api/mocks"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"testing"
+
+	"advertiser/shared/config/config"
+	"advertiser/shared/pkg/logger"
+	"advertiser/shared/pkg/service/repo"
+	"advertiser/shared/pkg/service/repo/models"
+	tgBotApiMock "advertiser/shared/tg_bot_api/mocks"
+
+	"tg-bot/internal/service/bot_api/repo/postgresql"
+	"tg-bot/internal/service/bot_api/transport"
+	"tg-bot/internal/service/bot_api/usecase"
 )
 
 type MyTestSuite struct {
@@ -68,7 +70,6 @@ func (suite *MyTestSuite) startChannelOwnerService() {
 	t := transport.New(uc, tgBotApi, cfg.Env)
 
 	go t.MonitorChannels()
-	go t.RunNotificationService()
 }
 
 func (suite *MyTestSuite) deleteTables() {
@@ -89,40 +90,5 @@ func fillTopics(db *gorm.DB) {
 		if result.Error != nil {
 			zap.L().Panic("failed to create topic", zap.Error(result.Error))
 		}
-	}
-}
-
-func (suite *MyTestSuite) PrepareModerationTest() {
-	suite.updatesChan <- *botIsAddedToChannelUpdate()
-	<-suite.targetChan
-
-	suite.updatesChan <- *editTopicsCallbackUpdate()
-	<-suite.targetChan
-	suite.updatesChan <- *editTopicsMessageUpdate()
-	<-suite.targetChan
-
-	r := postgresql.New(config.Load())
-
-	testCampaign := models.Campaign{
-		UserID: tgBotApiMock.ChannelCreator.ID,
-		Name:   "TestCampaign",
-	}
-
-	err := r.Db.Create(&testCampaign).Error
-	if err != nil {
-		zap.L().Panic("failed to create test campaign", zap.Error(err))
-	}
-	testAd := models.Advertisement{
-		CampaignID:   testCampaign.ID,
-		Name:         "testAd",
-		TargetTopics: []models.Topic{{ID: "food"}},
-		Message:      "Visit our restaurant!",
-		Status:       models.AdsStatusPending,
-		Budget:       100,
-		CostPerView:  0.01,
-	}
-	err = r.Db.Create(&testAd).Error
-	if err != nil {
-		zap.L().Panic("failed to create test ad", zap.Error(err))
 	}
 }

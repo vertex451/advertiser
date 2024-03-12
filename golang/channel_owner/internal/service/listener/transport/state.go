@@ -5,14 +5,13 @@ import (
 )
 
 type stateData struct {
-	lastMsgID       int
-	crumbs          []transport.CallBackQueryParams
-	state           BotState
-	adChanID        string
-	channelID       int64
-	botDirectChatID int64
-	campaignID      string
-	adID            string
+	lastMsgID  int
+	crumbs     []transport.CallBackQueryParams
+	state      BotState
+	adChanID   string
+	channelID  int64
+	campaignID string
+	adID       string
 }
 
 // setState sets the state of the conversation for a given chat ID

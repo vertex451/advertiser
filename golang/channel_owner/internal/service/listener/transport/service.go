@@ -163,9 +163,9 @@ func (s *Service) handleCallbackQuery(query *tgbotapi.CallbackQuery) *transport.
 
 func (s *Service) handleUpdateEvent(update tgbotapi.Update) *transport.Msg {
 	switch update.MyChatMember.NewChatMember.Status {
-	case StatusAdministrator:
+	case constants.StatusAdministrator:
 		return s.handleBotIsAddedToAdminsEvent(update.MyChatMember)
-	case StatusLeft:
+	case constants.StatusLeft:
 		return s.handleBotIsRemovedFromAdminsEvent(update.MyChatMember)
 	}
 

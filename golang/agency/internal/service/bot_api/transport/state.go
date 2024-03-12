@@ -6,28 +6,26 @@ import (
 )
 
 type stateData struct {
-	lastMsgID       int
-	crumbs          []transport.CallBackQueryParams
-	state           BotState
-	channelID       int64
-	botDirectChatID int64
-	campaignID      string
-	adID            string
+	lastMsgID  int
+	crumbs     []transport.CallBackQueryParams
+	state      BotState
+	campaignID string
+	adID       string
 }
 
 func (t *Transport) handleStateQuery(update tgbotapi.Update) *transport.Msg {
-	chatID := update.Message.Chat.ID
-	state := t.getState(chatID)
+	userID := transport.GetUserID(update)
+	state := t.getState(userID)
 
 	switch state.state {
 	case StateSetCampaignName:
-		return t.createCampaign(chatID, update.Message.Text)
+		return t.createCampaign(userID, update.Message.Text)
 	case StateCreateAd:
-		return t.upsertAd(chatID, state.campaignID, "", update.Message.Text)
+		return t.upsertAd(userID, state.campaignID, "", update.Message.Text)
 	case StateUpdateAd:
-		return t.upsertAd(chatID, "", state.adID, update.Message.Text)
+		return t.upsertAd(userID, "", state.adID, update.Message.Text)
 	default:
-		return t.start(chatID)
+		return t.start(userID)
 	}
 }
 

@@ -5,4 +5,8 @@ const (
 
 	Start = "start"
 	Back  = "back"
+
+	StatusAdministrator = "administrator"
+	StatusCreator       = "creator"
+	StatusLeft          = "left"
 )

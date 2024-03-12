@@ -1,7 +1,7 @@
-package mocks
+package tgBotApiMock
 
 import (
-	"advertiser/channel_owner/internal/service/listener/transport"
+	"advertiser/shared/pkg/service/constants"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -27,7 +27,7 @@ func (t TgBotApiMock) GetChatAdministrators(config tgbotapi.ChatAdministratorsCo
 				ID:       ChannelCreator.ID,
 				UserName: ChannelCreator.UserName,
 			},
-			Status: transport.StatusCreator,
+			Status: constants.StatusCreator,
 		},
 	}, nil
 }

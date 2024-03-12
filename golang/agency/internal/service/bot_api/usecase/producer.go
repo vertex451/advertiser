@@ -4,6 +4,8 @@ import (
 	"advertiser/shared/pkg/service/repo/models"
 	"advertiser/shared/pkg/service/usecase"
 	uuid "github.com/satori/go.uuid"
+	"slices"
+	"sort"
 	"tg-bot/internal/service/bot_api/types"
 )
 
@@ -12,11 +14,31 @@ func (uc *UseCase) AllTopics() (res []string) {
 		res = append(res, topic)
 	}
 
+	slices.Sort(res)
+
 	return res
 }
 
-func (uc *UseCase) AllTopicsWithCoverage() (map[string]int, error) {
-	return uc.cache.topics, nil
+func (uc *UseCase) AllTopicsWithCoverage() (res []types.TopicWithCoverage, err error) {
+	topicsMap := uc.cache.topics
+	for topic, coverage := range topicsMap {
+		res = append(res, types.TopicWithCoverage{
+			Name:     topic,
+			Coverage: coverage,
+		})
+	}
+
+	// first, sort by name
+	sort.SliceStable(res, func(i, j int) bool {
+		return res[i].Name < res[j].Name
+	})
+
+	// second, sort by coverage
+	sort.SliceStable(res, func(i, j int) bool {
+		return res[i].Coverage > res[j].Coverage
+	})
+
+	return res, nil
 }
 
 func (uc *UseCase) CreateCampaign(userID int64, campaignName string) (uuid.UUID, error) {
