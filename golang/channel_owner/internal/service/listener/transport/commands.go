@@ -4,18 +4,18 @@ import (
 	"advertiser/shared/pkg/service/constants"
 	"advertiser/shared/pkg/service/repo/models"
 	"advertiser/shared/pkg/service/transport"
+	"advertiser/shared/pkg/service/types"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"sort"
 	"strconv"
 	"strings"
 )
 
-func (s *Service) NavigateToPage(params transport.CallBackQueryParams) *transport.Msg {
+func (s *Service) NavigateToPage(params transport.CallBackQueryParams) types.CustomMessage {
 	switch params.Page {
 	case constants.Start:
 		return s.start(params.UserID)
@@ -33,7 +33,9 @@ func (s *Service) NavigateToPage(params transport.CallBackQueryParams) *transpor
 	case EditChannelsTopics:
 		return s.editTopicsPrompt(params.UserID, params.Variable)
 	case ModerateDetails:
-		return s.GetAdvertisementDetails(params.UserID, params.Variable)
+		return s.getAdvertisementDetails(params.UserID, params.Variable)
+	case constants.ViewAdMessage:
+		return s.viewAdMessage(params.UserID, params.Variable)
 	case PostNow:
 		return s.moderationDecision(params.UserID, PostNow, params.Variable)
 	case RejectAd:
@@ -44,26 +46,22 @@ func (s *Service) NavigateToPage(params transport.CallBackQueryParams) *transpor
 	}
 }
 
-func (s *Service) start(respondTo int64) *transport.Msg {
+func (s *Service) start(respondTo int64) types.CustomMessage {
 	s.resetState(respondTo)
 
-	var buttons []tgbotapi.InlineKeyboardButton
-	buttons = append(buttons, tgbotapi.NewInlineKeyboardButtonData("My channels", fmt.Sprintf("%s", MyChannels)),
-		tgbotapi.NewInlineKeyboardButtonData("Moderation", fmt.Sprintf("%s", Moderate)),
-		tgbotapi.NewInlineKeyboardButtonData("All topics", fmt.Sprintf("%s", constants.AllTopics)),
-	)
-
-	msg := transport.AddNavigationButtons(
+	return types.NewCustomMessageConfig(
 		tgbotapi.NewMessage(respondTo, "Choose action:"),
-		buttons,
+		[][]tgbotapi.InlineKeyboardButton{
+			{tgbotapi.NewInlineKeyboardButtonData("My channels", fmt.Sprintf("%s", MyChannels))},
+			{tgbotapi.NewInlineKeyboardButtonData("Moderation", fmt.Sprintf("%s", Moderate))},
+			{tgbotapi.NewInlineKeyboardButtonData("All topics", fmt.Sprintf("%s", constants.AllTopics))},
+		},
+		true,
+		false,
 	)
-
-	return &transport.Msg{
-		Msg: msg,
-	}
 }
 
-func (s *Service) back(respondTo int64) *transport.Msg {
+func (s *Service) back(respondTo int64) types.CustomMessage {
 	state := s.getState(respondTo)
 	if len(state.crumbs) <= 1 {
 		return s.start(respondTo)
@@ -71,26 +69,28 @@ func (s *Service) back(respondTo int64) *transport.Msg {
 
 	params := state.crumbs[len(state.crumbs)-2]
 	state.crumbs = state.crumbs[:len(state.crumbs)-1]
+	state.state = StateStart
 
 	s.setState(respondTo, state)
 
 	return s.NavigateToPage(params)
 }
 
-func (s *Service) allTopics(respondTo int64) *transport.Msg {
-	var msg tgbotapi.MessageConfig
-	msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf(`
+func (s *Service) allTopics(respondTo int64) types.CustomMessage {
+	msgText := fmt.Sprintf(`
 Supported topics:
 %s
-`, strings.Join(s.uc.AllTopics(), ", ")))
-	msg = transport.AddNavigationButtons(msg, nil)
+`, strings.Join(s.uc.AllTopics(), ", "))
 
-	return &transport.Msg{
-		Msg: msg,
-	}
+	return types.NewCustomMessageConfig(
+		tgbotapi.NewMessage(respondTo, msgText),
+		nil,
+		true,
+		false,
+	)
 }
 
-func (s *Service) listMyChannels(respondTo int64) *transport.Msg {
+func (s *Service) listMyChannels(respondTo int64) types.CustomMessage {
 	var msg tgbotapi.MessageConfig
 	myChannels, err := s.uc.ListMyChannels(respondTo)
 	if err != nil {
@@ -101,11 +101,13 @@ func (s *Service) listMyChannels(respondTo int64) *transport.Msg {
 			msg = tgbotapi.NewMessage(respondTo, "failed to list channels")
 		}
 
-		msg = transport.AddNavigationButtons(msg, nil)
+		return types.NewCustomMessageConfig(
+			msg,
+			nil,
+			true,
+			false,
+		)
 
-		return &transport.Msg{
-			Msg: msg,
-		}
 	}
 
 	var channelButtons []tgbotapi.InlineKeyboardButton
@@ -114,19 +116,15 @@ func (s *Service) listMyChannels(respondTo int64) *transport.Msg {
 		channelButtons = append(channelButtons, tgbotapi.NewInlineKeyboardButtonData(channelName, data))
 	}
 
-	sort.Slice(channelButtons, func(i, j int) bool {
-		return channelButtons[i].Text < channelButtons[j].Text
-	})
-
-	msg = tgbotapi.NewMessage(respondTo, "Select a channel:")
-	msg = transport.AddNavigationButtons(msg, channelButtons)
-
-	return &transport.Msg{
-		Msg: msg,
-	}
+	return types.NewCustomMessageConfig(
+		tgbotapi.NewMessage(respondTo, "Select a channel:"),
+		transport.MakeTwoButtonsInARow(channelButtons),
+		true,
+		false,
+	)
 }
 
-func (s *Service) listChannelTopics(respondTo int64, rawChannelID string) *transport.Msg {
+func (s *Service) listChannelTopics(respondTo int64, rawChannelID string) types.CustomMessage {
 	channelID, err := strconv.ParseInt(rawChannelID, 10, 64)
 	if err != nil {
 		zap.L().Panic("failed to parse string to int64")
@@ -151,14 +149,16 @@ func (s *Service) listChannelTopics(respondTo int64, rawChannelID string) *trans
 			fmt.Sprintf("Edit %s topics", channelInfo.Title),
 			fmt.Sprintf("%s/%s", EditChannelsTopics, strconv.FormatInt(channelID, 10))),
 	)
-	msg = transport.AddNavigationButtons(msg, buttons)
 
-	return &transport.Msg{
-		Msg: msg,
-	}
+	return types.NewCustomMessageConfig(
+		msg,
+		[][]tgbotapi.InlineKeyboardButton{buttons},
+		true,
+		false,
+	)
 }
 
-func (s *Service) editChannelTopics(respondTo, channelID int64, topics []string) *transport.Msg {
+func (s *Service) editChannelTopics(respondTo, channelID int64, topics []string) types.CustomMessage {
 	s.resetState(channelID)
 
 	var msg tgbotapi.MessageConfig
@@ -177,44 +177,44 @@ func (s *Service) editChannelTopics(respondTo, channelID int64, topics []string)
 		msg = tgbotapi.NewMessage(respondTo, text)
 	}
 
-	msg = transport.AddNavigationButtons(msg, nil)
+	return types.NewCustomMessageConfig(
+		msg,
+		nil,
+		true,
+		false)
 
-	return &transport.Msg{
-		SkipDeletion: true,
-		Msg:          msg,
-	}
 }
 
-func (s *Service) moderate(id int64) *transport.Msg {
+func (s *Service) moderate(id int64) types.CustomMessage {
 	ads, err := s.uc.GetAdsToModerateByUserID(id)
 	if err != nil {
 		zap.L().Error("failed to get ads to moderate", zap.Error(err))
 	}
 
 	var msg tgbotapi.MessageConfig
-	var channelButtons []tgbotapi.InlineKeyboardButton
+	var rows [][]tgbotapi.InlineKeyboardButton
 	if len(ads) == 0 {
 		msg = tgbotapi.NewMessage(id, "No ads to moderate")
 	} else {
 		msg = tgbotapi.NewMessage(id, "Select an advertisement to moderate:")
 		for _, entry := range ads {
-			channelButtons = append(channelButtons,
-				tgbotapi.NewInlineKeyboardButtonData(
-					fmt.Sprintf("%s (cpv: %v)", entry.ChannelTitle, entry.AdCostPerView),
-					fmt.Sprintf("%s/%s", ModerateDetails, entry.ID),
-				),
-			)
+			rows = append(rows, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(
+				fmt.Sprintf("%s - %s (cpv: %v)", entry.Channel.Title, entry.Advertisement.Name, entry.Advertisement.CostPerView),
+				fmt.Sprintf("%s/%s", ModerateDetails, entry.ID),
+			)))
 		}
 	}
 
-	msg = transport.AddNavigationButtons(msg, channelButtons)
+	return types.NewCustomMessageConfig(
+		msg,
+		rows,
+		true,
+		false,
+	)
 
-	return &transport.Msg{
-		Msg: msg,
-	}
 }
 
-func (s *Service) GetAdvertisementDetails(chatID int64, advertisementChannelID string) *transport.Msg {
+func (s *Service) getAdvertisementDetails(chatID int64, advertisementChannelID string) types.CustomMessage {
 	advertisementChannel, err := s.uc.GetAdChanDetails(advertisementChannelID)
 	if err != nil {
 		zap.L().Error("failed to get ad details", zap.Error(err))
@@ -222,40 +222,70 @@ func (s *Service) GetAdvertisementDetails(chatID int64, advertisementChannelID s
 	}
 
 	var msg tgbotapi.MessageConfig
-	var channelButtons []tgbotapi.InlineKeyboardButton
-
 	msg = tgbotapi.NewMessage(chatID, fmt.Sprintf(
 		`
-Target channel: %s
+Target channel: %s (@%s)
 Advertisement details:
-- ID: %s
+- Name: %s
 - Cost per view: %v USD
-- Message: %s
 `,
-		advertisementChannel.ChannelTitle,
-		advertisementChannel.AdName,
-		advertisementChannel.AdCostPerView,
-		advertisementChannel.AdMessage,
+		advertisementChannel.Channel.Title,
+		advertisementChannel.Channel.Handle,
+		advertisementChannel.Advertisement.Name,
+		advertisementChannel.Advertisement.CostPerView,
 	))
-	channelButtons = append(channelButtons,
-		tgbotapi.NewInlineKeyboardButtonData(
-			fmt.Sprintf("%s", "Post Now"),
-			fmt.Sprintf("%s/%s", PostNow, advertisementChannel.ID),
-		),
-		tgbotapi.NewInlineKeyboardButtonData(
-			fmt.Sprintf("%s", "Reject"),
-			fmt.Sprintf("%s/%s", RejectAd, advertisementChannel.ID),
-		),
-	)
 
-	msg = transport.AddNavigationButtons(msg, channelButtons)
-
-	return &transport.Msg{
-		Msg: msg,
+	rows := [][]tgbotapi.InlineKeyboardButton{
+		{tgbotapi.NewInlineKeyboardButtonData(
+			"View Advertisement message",
+			fmt.Sprintf("%s/%s", constants.ViewAdMessage, advertisementChannel.ID),
+		)},
 	}
+
+	return types.NewCustomMessageConfig(
+		msg,
+		rows,
+		true,
+		true,
+	)
 }
 
-func (s *Service) moderationDecision(respondTo int64, decision string, adChanID string) *transport.Msg {
+func (s *Service) viewAdMessage(chatID int64, adChanID string) types.CustomMessage {
+	ad, err := s.uc.GetAdMessageByAdChanID(uuid.FromStringOrNil(adChanID))
+	if err != nil {
+		zap.L().Error("failed to get advertisement details", zap.Error(err))
+
+		return types.NewCustomMessageConfig(
+			tgbotapi.NewMessage(chatID, fmt.Sprintf("Failed to get advertisement details. Error: %v", err)),
+			nil,
+			true,
+			false,
+		)
+	}
+
+	msg := transport.ComposeAdMessage(
+		chatID,
+		*ad,
+		[][]tgbotapi.InlineKeyboardButton{
+			{
+				tgbotapi.NewInlineKeyboardButtonData(
+					fmt.Sprintf("%s", "Post Now"),
+					fmt.Sprintf("%s/%s", PostNow, adChanID),
+				),
+				tgbotapi.NewInlineKeyboardButtonData(
+					fmt.Sprintf("%s", "Reject"),
+					fmt.Sprintf("%s/%s", RejectAd, adChanID),
+				),
+			},
+		},
+		true,
+		false,
+	)
+
+	return msg
+}
+
+func (s *Service) moderationDecision(respondTo int64, decision string, adChanID string) types.CustomMessage {
 	var err error
 	var msg tgbotapi.MessageConfig
 
@@ -280,22 +310,26 @@ func (s *Service) moderationDecision(respondTo int64, decision string, adChanID 
 				state:    StateWaitForRejectReason,
 				adChanID: adChanID,
 			})
-			msg = tgbotapi.NewMessage(respondTo, "Please provide a reason for rejection")
 
-			return &transport.Msg{
-				Msg: msg,
-			}
+			return types.NewCustomMessageConfig(
+				tgbotapi.NewMessage(respondTo, "Please provide a reason for rejection:"),
+				nil,
+				false,
+				false,
+			)
+
 		}
 	}
 
-	msg = transport.AddNavigationButtons(msg, nil)
-
-	return &transport.Msg{
-		Msg: msg,
-	}
+	return types.NewCustomMessageConfig(
+		msg,
+		nil,
+		true,
+		false,
+	)
 }
 
-func (s *Service) saveRejectionReason(respondTo int64, adChanID, reason string) *transport.Msg {
+func (s *Service) saveRejectionReason(respondTo int64, adChanID, reason string) types.CustomMessage {
 	s.resetState(respondTo)
 	err := s.uc.UpdateAdChanEntry(models.AdvertisementChannel{
 		ID:              uuid.FromStringOrNil(adChanID),
@@ -305,11 +339,10 @@ func (s *Service) saveRejectionReason(respondTo int64, adChanID, reason string) 
 		zap.L().Error("failed to update advertisement status", zap.Error(err))
 	}
 
-	msg := transport.AddNavigationButtons(
-		tgbotapi.NewMessage(respondTo, "Thank you! We will review this."), nil,
+	return types.NewCustomMessageConfig(
+		tgbotapi.NewMessage(respondTo, "Thank you! We will review this."),
+		nil,
+		true,
+		false,
 	)
-
-	return &transport.Msg{
-		Msg: msg,
-	}
 }

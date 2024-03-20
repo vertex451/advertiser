@@ -1,25 +1,27 @@
 package transport
 
 import (
-	"advertiser/shared/pkg/service/transport"
+	"advertiser/shared/pkg/service/types"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func (t *Transport) createCampaignPrompt(respondTo int64) *transport.Msg {
+func (t *Transport) createCampaignPrompt(respondTo int64) types.CustomMessage {
 	msg := tgbotapi.NewMessage(respondTo, "Enter campaign name:")
 
 	t.setState(respondTo, stateData{
 		state: StateSetCampaignName,
 	})
 
-	return &transport.Msg{
-		Msg: msg,
-	}
+	return types.NewCustomMessageConfig(
+		msg,
+		nil,
+		false,
+		true,
+	)
 }
 
-func (t *Transport) upsertAdPrompt(respondTo int64, variable string, state BotState) *transport.Msg {
-	var msg tgbotapi.MessageConfig
+func (t *Transport) createAdPrompt(respondTo int64, variable string, state BotState) types.CustomMessage {
 	var action string
 	switch state {
 	case StateCreateAd:
@@ -28,25 +30,20 @@ func (t *Transport) upsertAdPrompt(respondTo int64, variable string, state BotSt
 			state:      StateCreateAd,
 			campaignID: variable,
 		})
-	case StateUpdateAd:
-		action = "update"
-		t.setState(respondTo, stateData{
-			state: StateUpdateAd,
-			adID:  variable,
-		})
 	}
 
-	promptText := fmt.Sprintf(`
+	msgText := fmt.Sprintf(`
 To %s an advertisement, send a message in the following format:
-Name: Stock market
-TargetTopics: topic1, topic2, topic3
+Name: McDonald's
+TargetTopics: food
 BudgetUSD: 100
 CostPerView: 0.1
-Message: Follow this [link](https://www.investing.com/) to find more about investments!
 `, action)
-	msg = tgbotapi.NewMessage(respondTo, promptText)
 
-	return &transport.Msg{
-		Msg: msg,
-	}
+	return types.NewCustomMessageConfig(
+		tgbotapi.NewMessage(respondTo, msgText),
+		nil,
+		false,
+		true,
+	)
 }

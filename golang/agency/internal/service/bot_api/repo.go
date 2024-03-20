@@ -13,7 +13,7 @@ type Repo interface {
 	ListMyCampaigns(userID int64) ([]models.Campaign, error)
 	CampaignDetails(campaignID uuid.UUID) (*models.Campaign, error)
 
-	UpsertAd(advertisement models.Advertisement) (*uuid.UUID, error)
+	UpsertAd(advertisement *models.Advertisement) error
 	GetAdDetails(id uuid.UUID) (*models.Advertisement, error)
 	RunAd(uuid.UUID) error
 }

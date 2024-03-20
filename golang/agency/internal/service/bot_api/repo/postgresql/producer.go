@@ -92,16 +92,16 @@ func (r *Repository) CampaignDetails(campaignID uuid.UUID) (*models.Campaign, er
 	return &campaign, err
 }
 
-func (r *Repository) UpsertAd(advertisement models.Advertisement) (*uuid.UUID, error) {
+func (r *Repository) UpsertAd(advertisement *models.Advertisement) error {
 	var err error
 	if advertisement.ID != uuid.Nil {
-		err = r.Db.Updates(&advertisement).Error
+		err = r.Db.Updates(advertisement).Error
 	} else {
 		advertisement.Status = models.AdsStatusCreated
 		err = r.Db.Create(&advertisement).Error
 	}
 
-	return &advertisement.ID, err
+	return err
 }
 
 func (r *Repository) GetAdDetails(id uuid.UUID) (*models.Advertisement, error) {
@@ -109,7 +109,7 @@ func (r *Repository) GetAdDetails(id uuid.UUID) (*models.Advertisement, error) {
 		ID: id,
 	}
 
-	err := r.Db.Preload("TargetTopics").Find(&ad).Error
+	err := r.Db.Preload("TargetTopics").Preload("MsgEntities").Find(&ad).Error
 	if err != nil {
 		return nil, err
 	}

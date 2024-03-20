@@ -9,8 +9,10 @@ type Channel struct {
 	ID int64 `gorm:"primary_key"`
 
 	//Metadata
-	Admins      []*User  `gorm:"many2many:channel_admins;"`
-	Topics      []*Topic `gorm:"many2many:channel_topics;"`
+	Topics []Topic `gorm:"many2many:channel_topics;"`
+
+	ChannelAdmins []ChannelAdmin `gorm:"foreignKey:ChannelID"`
+
 	Description string
 	Handle      string
 
@@ -19,9 +21,7 @@ type Channel struct {
 	Title          string
 
 	//Stats
-	PostsPerDay               int
-	Subscribers               int
-	TotalViewsForLastTenPosts int
+	Subscribers int
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

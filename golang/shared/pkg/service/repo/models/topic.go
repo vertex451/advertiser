@@ -12,3 +12,7 @@ type Topic struct {
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
+
+func (t Topic) Join() string {
+	return "topics"
+}

@@ -8,17 +8,15 @@ import (
 
 func (r *Repository) GetAdsOnModeration() (res []models.AdvertisementChannel, err error) {
 	err = r.Db.Raw(`
-SELECT c.id as channel_id, c.title as channel_title, c.handle as channel_handle,
-       ca.user_id as channel_owner_id, 
-       ads.id as advertisement_id, ads.name as ad_name,  
-       ads.message as ad_message, ads.cost_per_view as ad_cost_per_view
+SELECT c.id as channel_id,
+       ads.id as advertisement_id
 FROM advertisements as ads
          LEFT JOIN advertisement_topics at on ads.id = at.advertisement_id
          LEFT JOIN channel_topics ct on at.topic_id = ct.topic_id
          LEFT JOIN channels c on ct.channel_id = c.id
          LEFT JOIN channel_admins ca on c.id = ca.channel_id
 WHERE ads.status = 'pending' AND ca.role = 'creator'
-GROUP BY c.id, ca.user_id, ads.message, ads.id;
+GROUP BY c.id, ca.user_id, ads.id;
 `).Find(&res).Error
 	if err != nil {
 		zap.L().Error("failed to get topics", zap.Error(err))
@@ -52,7 +50,11 @@ func (r *Repository) CreateAdChanEntries(ads []models.AdvertisementChannel) {
 }
 
 func (r *Repository) GetAdChannelByStatus(status models.AdChanStatus) (res []models.AdvertisementChannel, err error) {
-	err = r.Db.Where("status = ?", status).Find(&res).Error
+	err = r.Db.
+		Preload("Advertisement").
+		Preload("Channel.ChannelAdmins").
+		Where("status = ?", status).
+		Find(&res).Error
 	if err != nil {
 		zap.L().Error("failed to get advertisement channel by status", zap.Error(err))
 		return nil, err

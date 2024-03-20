@@ -92,9 +92,14 @@ Message: Follow this [link](https://www.investing.com/) to find more about inves
 `,
 		},
 		{
-			testName:        "TestCreateAdvertisementMessage",
+			testName:        "TestCreateAdvertisementMessage1",
+			update:          createAdMetadataMessageUpdate,
+			expectedMsgText: "Please, provide an advertisement message",
+		},
+		{
+			testName:        "TestCreateAdvertisementMessage2",
 			update:          createAdMessageUpdate,
-			expectedMsgText: "Advertisement 'Stock market' created!",
+			expectedMsgText: "Advertisement created!",
 		},
 		{
 			testName:        "TestCampaignDetails",
@@ -111,10 +116,13 @@ Name: Stock market
 Status: created
 TargetTopics: art, food
 BudgetUSD: 100
-Message: Follow this [link](https://www.investing.com/) to find more about investments!
-
-Total members: 0
 `,
+		},
+		{
+			testName:        "TestShowAdMessage",
+			preHook:         getAdID,
+			update:          viewAdMessageCallbackUpdate,
+			expectedMsgText: "This is a test ad message",
 		},
 		{
 			testName:        "TestRunAd",

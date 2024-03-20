@@ -3,6 +3,7 @@ package listener
 import (
 	"advertiser/shared/pkg/service/repo/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	uuid "github.com/satori/go.uuid"
 )
 
 type UseCase interface {
@@ -22,6 +23,7 @@ type Listener interface {
 	GetAdsToModerateByUserID(id int64) ([]models.AdvertisementChannel, error)
 
 	GetAdChanDetails(id string) (*models.AdvertisementChannel, error)
+	GetAdMessageByAdChanID(uuid.UUID) (*models.Advertisement, error)
 
 	UpdateAdChanEntry(channel models.AdvertisementChannel) error
 	UpdateAd(ad models.Advertisement) error

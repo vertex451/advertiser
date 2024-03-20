@@ -2,6 +2,7 @@ package transport
 
 import (
 	"advertiser/shared/pkg/service/repo/models"
+	"advertiser/shared/pkg/service/transport"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	uuid "github.com/satori/go.uuid"
@@ -37,10 +38,14 @@ func (s *Service) PostAdvertisement(adChanID string) error {
 		return nil
 	}
 
-	postedMsg, err := s.tgBotApi.Send(tgbotapi.NewMessage(
-		adChan.ChannelID,
-		fmt.Sprintf("%s", adChan.AdMessage)),
+	msg := transport.ComposeAdMessage(
+		adChan.Channel.ID,
+		adChan.Advertisement,
+		nil,
+		false,
+		false,
 	)
+	postedMsg, err := s.tgBotApi.Send(msg)
 	if err != nil {
 		zap.L().Error("failed to post advertisement", zap.Error(err))
 		return err
@@ -61,7 +66,7 @@ func (s *Service) PostAdvertisement(adChanID string) error {
 	err = s.uc.UpdateAdChanEntry(models.AdvertisementChannel{
 		ID:                  uuid.FromStringOrNil(adChanID),
 		Status:              models.AdChanPosted,
-		MessageID:           postedMsg.MessageID,
+		ChannelPostID:       postedMsg.MessageID,
 		DeletionScheduledAt: deleteAt,
 	})
 	if err != nil {
@@ -72,11 +77,12 @@ func (s *Service) PostAdvertisement(adChanID string) error {
 }
 
 func (s *Service) DeleteAdvertisement(adChanID string, channelID int64, messageID int) error {
-	editMessageConfig := tgbotapi.NewEditMessageText(channelID, messageID,
-		fmt.Sprintf(`
-Advertisement is finished. 
-Check out our @%s bot to monetize your channel!`, ChannelMonetizerBotName),
+	editMessageConfig := tgbotapi.NewEditMessageText(
+		channelID,
+		messageID,
+		transport.AddFooter("Advertisement is finished."),
 	)
+
 	_, err := s.tgBotApi.Send(editMessageConfig)
 	if err != nil {
 		zap.L().Error("failed to delete advertisement", zap.Error(err))

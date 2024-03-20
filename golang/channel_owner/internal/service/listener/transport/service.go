@@ -4,6 +4,7 @@ import (
 	"advertiser/channel_owner/internal/service/listener"
 	"advertiser/shared/pkg/service/constants"
 	"advertiser/shared/pkg/service/transport"
+	"advertiser/shared/pkg/service/types"
 	"advertiser/shared/tg_api"
 	"advertiser/shared/tg_bot_api"
 	"fmt"
@@ -16,8 +17,6 @@ import (
 
 // Commands:
 const (
-	ChannelMonetizerBotName = "channel_monetizer_bot"
-
 	EditChannelsTopics = "edit_channel_topics"
 	ListChannelsTopics = "list_channels_topics"
 	MyChannels         = "my_channels"
@@ -86,12 +85,15 @@ func (s *Service) MonitorChannels() {
 		userID = transport.GetUserID(update)
 
 		state = s.getState(userID)
-		if !responseMessage.SkipDeletion && state.lastMsgID != 0 {
+		if !responseMessage.SkipDeletion() && state.lastMsgID != 0 {
 			deleteMsg := tgbotapi.NewDeleteMessage(userID, state.lastMsgID)
-			s.tgBotApi.Send(deleteMsg)
+			_, err = s.tgBotApi.Send(deleteMsg)
+			if err != nil {
+				zap.L().Error("failed to delete message", zap.Error(err))
+			}
 		}
 
-		sentMsg, err = s.tgBotApi.Send(responseMessage.Msg)
+		sentMsg, err = s.tgBotApi.Send(responseMessage)
 		if err != nil {
 			zap.L().Error("failed to send message", zap.Error(err))
 			continue
@@ -101,7 +103,7 @@ func (s *Service) MonitorChannels() {
 	}
 }
 
-func (s *Service) handleUpdate(update tgbotapi.Update) *transport.Msg {
+func (s *Service) handleUpdate(update tgbotapi.Update) types.CustomMessage {
 	if update.Message != nil {
 		if update.Message.IsCommand() {
 			return s.handleCommand(update)
@@ -123,7 +125,7 @@ func (s *Service) handleUpdate(update tgbotapi.Update) *transport.Msg {
 	return nil
 }
 
-func (s *Service) handleCommand(update tgbotapi.Update) *transport.Msg {
+func (s *Service) handleCommand(update tgbotapi.Update) types.CustomMessage {
 	userID := transport.GetUserID(update)
 	switch update.Message.Command() {
 	case constants.Start:
@@ -136,7 +138,7 @@ func (s *Service) handleCommand(update tgbotapi.Update) *transport.Msg {
 	return nil
 }
 
-func (s *Service) handleStateQuery(update tgbotapi.Update) *transport.Msg {
+func (s *Service) handleStateQuery(update tgbotapi.Update) types.CustomMessage {
 	userID := transport.GetUserID(update)
 	state := s.getState(userID)
 
@@ -151,7 +153,7 @@ func (s *Service) handleStateQuery(update tgbotapi.Update) *transport.Msg {
 	}
 }
 
-func (s *Service) handleCallbackQuery(query *tgbotapi.CallbackQuery) *transport.Msg {
+func (s *Service) handleCallbackQuery(query *tgbotapi.CallbackQuery) types.CustomMessage {
 	params := transport.ParseCallBackQuery(query)
 
 	if params.Page != constants.Back {
@@ -161,7 +163,7 @@ func (s *Service) handleCallbackQuery(query *tgbotapi.CallbackQuery) *transport.
 	return s.NavigateToPage(params)
 }
 
-func (s *Service) handleUpdateEvent(update tgbotapi.Update) *transport.Msg {
+func (s *Service) handleUpdateEvent(update tgbotapi.Update) types.CustomMessage {
 	switch update.MyChatMember.NewChatMember.Status {
 	case constants.StatusAdministrator:
 		return s.handleBotIsAddedToAdminsEvent(update.MyChatMember)

@@ -8,6 +8,9 @@ import (
 type TgBotApiProvider interface {
 	GetChatAdministrators(config tgbotapi.ChatAdministratorsConfig) ([]tgbotapi.ChatMember, error)
 	GetChatMembersCount(config tgbotapi.ChatMemberCountConfig) (int, error)
+	GetFile(cfg tgbotapi.FileConfig) (tgbotapi.File, error)
+	GetToken() string
+	GetFileDirectURL(filePath string) (string, error)
 	GetUpdatesChan() tgbotapi.UpdatesChannel
 	Send(c tgbotapi.Chattable) (tgbotapi.Message, error)
 }
@@ -50,4 +53,16 @@ func (t *TgBotApi) GetChatAdministrators(config tgbotapi.ChatAdministratorsConfi
 
 func (t *TgBotApi) GetChatMembersCount(config tgbotapi.ChatMemberCountConfig) (int, error) {
 	return t.tgBotApi.GetChatMembersCount(config)
+}
+
+func (t *TgBotApi) GetFile(cfg tgbotapi.FileConfig) (tgbotapi.File, error) {
+	return t.tgBotApi.GetFile(cfg)
+}
+
+func (t *TgBotApi) GetFileDirectURL(filePath string) (string, error) {
+	return t.tgBotApi.GetFileDirectURL(filePath)
+}
+
+func (t *TgBotApi) GetToken() string {
+	return t.tgBotApi.Token
 }

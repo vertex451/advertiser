@@ -3,6 +3,7 @@ package transport
 import (
 	"advertiser/shared/pkg/service/constants"
 	"advertiser/shared/pkg/service/transport"
+	"advertiser/shared/pkg/service/types"
 	"advertiser/shared/tg_bot_api"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
@@ -23,10 +24,12 @@ const (
 
 	CreateAd  = "create_ad"
 	AdDetails = "ad_details"
-	EditAd    = "edit_ad"
-	RunAd     = "run_ad"
-	PauseAd   = "pause_ad"
-	FinishAd  = "finish_ad"
+
+	EditAd   = "edit_ad"
+	DeleteAd = "delete_ad"
+	RunAd    = "run_ad"
+	PauseAd  = "pause_ad"
+	FinishAd = "finish_ad"
 )
 
 type BotState int
@@ -35,7 +38,8 @@ const (
 	StateStart BotState = iota
 	StateSetCampaignName
 	StateCreateAd
-	StateUpdateAd
+	StateCreateAdMessage
+	//StateUpdateAd
 )
 
 type Transport struct {
@@ -69,14 +73,14 @@ func (t *Transport) MonitorChannels() {
 		}
 
 		userID = transport.GetUserID(update)
-
 		state = t.getState(userID)
-		if !responseMessage.SkipDeletion && state.lastMsgID != 0 {
+
+		if !responseMessage.SkipDeletion() && state.lastMsgID != 0 {
 			deleteMsg := tgbotapi.NewDeleteMessage(TgBotDirectChatID, state.lastMsgID)
 			t.tgBotApi.Send(deleteMsg)
 		}
 
-		sentMsg, err = t.tgBotApi.Send(responseMessage.Msg)
+		sentMsg, err = t.tgBotApi.Send(responseMessage)
 		if err != nil {
 			zap.L().Error("failed to send message", zap.Error(err))
 			continue
@@ -87,7 +91,7 @@ func (t *Transport) MonitorChannels() {
 }
 
 // TODO add rate limiter
-func (t *Transport) handleUpdate(update tgbotapi.Update) *transport.Msg {
+func (t *Transport) handleUpdate(update tgbotapi.Update) types.CustomMessage {
 	userID := transport.GetUserID(update)
 	if update.Message != nil {
 		if update.Message.IsCommand() {
@@ -100,7 +104,7 @@ func (t *Transport) handleUpdate(update tgbotapi.Update) *transport.Msg {
 
 		}
 
-		if update.Message.Text != "" {
+		if update.Message.Text != "" || update.Message.Caption != "" {
 			return t.handleStateQuery(update)
 		}
 	}
@@ -111,8 +115,3 @@ func (t *Transport) handleUpdate(update tgbotapi.Update) *transport.Msg {
 
 	return nil
 }
-
-// Added bot by admin to channel
-// {"ok":true,"result":[{"update_id":632156492, "my_chat_member":{"chat":{"id":-1002025237232,"title":"Public Sport Channel","username":"sportchannel451","type":"channel"},"from":{"id":399749369,"is_bot":false,"first_name":"Artem","username":"vertex451","language_code":"en"},"date":1705664974,"old_chat_member":{"user":{"id":6845534569,"is_bot":true,"first_name":"Advertiser","username":"advertiser_451_bot"},"status":"left"},"new_chat_member":{"user":{"id":6845534569,"is_bot":true,"first_name":"Advertiser","username":"advertiser_451_bot"},"status":"administrator","can_be_edited":false,"can_manage_chat":true,"can_change_info":false,"can_post_messages":true,"can_edit_messages":false,"can_delete_messages":false,"can_invite_users":false,"can_restrict_members":true,"can_promote_members":false,"can_manage_video_chats":false,"can_post_stories":false,"can_edit_stories":false,"can_delete_stories":false,"is_anonymous":false,"can_manage_voice_chats":false}}}]}
-// Remove bot from admins
-// {"ok":true,"result":[{"update_id":632156491, "my_chat_member":{"chat":{"id":-1002025237232,"title":"Public Sport Channel","username":"sportchannel451","type":"channel"},"from":{"id":399749369,"is_bot":false,"first_name":"Artem","username":"vertex451","language_code":"en"},"date":1705664660,"old_chat_member":{"user":{"id":6845534569,"is_bot":true,"first_name":"Advertiser","username":"advertiser_451_bot"},"status":"administrator","can_be_edited":false,"can_manage_chat":true,"can_change_info":false,"can_post_messages":true,"can_edit_messages":false,"can_delete_messages":false,"can_invite_users":false,"can_restrict_members":true,"can_promote_members":false,"can_manage_video_chats":false,"can_post_stories":false,"can_edit_stories":false,"can_delete_stories":false,"is_anonymous":false,"can_manage_voice_chats":false},"new_chat_member":{"user":{"id":6845534569,"is_bot":true,"first_name":"Advertiser","username":"advertiser_451_bot"},"status":"left"}}}]}

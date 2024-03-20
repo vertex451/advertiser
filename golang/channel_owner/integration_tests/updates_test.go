@@ -76,7 +76,7 @@ func botIsAddedToChannelUpdate() *tgbotapi.Update {
 			NewChatMember: tgbotapi.ChatMember{
 				User: &tgbotapi.User{
 					ID:       testBot.id,
-					UserName: transport.ChannelMonetizerBotName,
+					UserName: constants.ChannelMonetizerBotName,
 				},
 				Status:            constants.StatusAdministrator,
 				CanPostMessages:   true,
@@ -125,7 +125,7 @@ func botIsRemovedFromChannelUpdate() *tgbotapi.Update {
 			NewChatMember: tgbotapi.ChatMember{
 				User: &tgbotapi.User{
 					ID:       testBot.id,
-					UserName: transport.ChannelMonetizerBotName,
+					UserName: constants.ChannelMonetizerBotName,
 				},
 				Status: constants.StatusLeft,
 			},

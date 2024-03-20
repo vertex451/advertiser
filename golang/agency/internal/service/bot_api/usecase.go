@@ -13,7 +13,7 @@ type UseCase interface {
 	ListMyCampaigns(userID int64) ([]models.Campaign, error)
 	CampaignDetails(campaignID uuid.UUID) (*models.Campaign, error)
 
-	UpsertAd(advertisement models.Advertisement) (*uuid.UUID, error)
-	GetAdDetails(uuid.UUID) (*types.Advertisement, error)
+	UpsertAd(advertisement *models.Advertisement) error
+	GetAdDetails(uuid.UUID) (*models.Advertisement, error)
 	RunAd(uuid.UUID) error
 }

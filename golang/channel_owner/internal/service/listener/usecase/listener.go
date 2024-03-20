@@ -4,6 +4,7 @@ import (
 	"advertiser/shared/pkg/service/repo/models"
 	"advertiser/shared/pkg/service/usecase"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	uuid "github.com/satori/go.uuid"
 	"slices"
 )
 
@@ -53,4 +54,8 @@ func (uc *UseCase) GetAdsToModerateByUserID(id int64) ([]models.AdvertisementCha
 
 func (uc *UseCase) GetAdChanDetails(id string) (*models.AdvertisementChannel, error) {
 	return uc.repo.GetAdChanDetails(id)
+}
+
+func (uc *UseCase) GetAdMessageByAdChanID(id uuid.UUID) (*models.Advertisement, error) {
+	return uc.repo.GetAdMessageByAdChanID(id)
 }

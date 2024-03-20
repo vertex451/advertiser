@@ -2,6 +2,7 @@ package transport
 
 import (
 	"advertiser/shared/pkg/service/transport"
+	"advertiser/shared/pkg/service/types"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -13,7 +14,7 @@ type stateData struct {
 	adID       string
 }
 
-func (t *Transport) handleStateQuery(update tgbotapi.Update) *transport.Msg {
+func (t *Transport) handleStateQuery(update tgbotapi.Update) types.CustomMessage {
 	userID := transport.GetUserID(update)
 	state := t.getState(userID)
 
@@ -21,9 +22,25 @@ func (t *Transport) handleStateQuery(update tgbotapi.Update) *transport.Msg {
 	case StateSetCampaignName:
 		return t.createCampaign(userID, update.Message.Text)
 	case StateCreateAd:
-		return t.upsertAd(userID, state.campaignID, "", update.Message.Text)
-	case StateUpdateAd:
-		return t.upsertAd(userID, "", state.adID, update.Message.Text)
+		return t.createAdMetadata(userID, state.campaignID, update.Message.Text)
+	case StateCreateAdMessage:
+		if update.Message.Text != "" {
+			return t.createAdMessage(
+				userID,
+				state.adID,
+				update.Message.Text,
+				update.Message.Entities,
+				update.Message.Photo,
+			)
+		} else {
+			return t.createAdMessage(
+				userID,
+				state.adID,
+				update.Message.Caption,
+				update.Message.CaptionEntities,
+				update.Message.Photo,
+			)
+		}
 	default:
 		return t.start(userID)
 	}

@@ -102,7 +102,7 @@ func createAdCallbackUpdate(campaignID string) *tgbotapi.Update {
 	}
 }
 
-func createAdMessageUpdate(data string) *tgbotapi.Update {
+func createAdMetadataMessageUpdate(data string) *tgbotapi.Update {
 	return &tgbotapi.Update{
 		Message: &tgbotapi.Message{
 			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
@@ -110,8 +110,16 @@ func createAdMessageUpdate(data string) *tgbotapi.Update {
 Name: Stock market
 TargetTopics: art, food
 BudgetUSD: 100
-CostPerView: 0.1
-Message: Follow this [link](https://www.investing.com/) to find more about investments!`,
+CostPerView: 0.1`,
+		},
+	}
+}
+
+func createAdMessageUpdate(data string) *tgbotapi.Update {
+	return &tgbotapi.Update{
+		Message: &tgbotapi.Message{
+			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			Text: `This is a test ad message`,
 		},
 	}
 }
@@ -139,6 +147,15 @@ func runAdCallbackUpdate(adID string) *tgbotapi.Update {
 		CallbackQuery: &tgbotapi.CallbackQuery{
 			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
 			Data: fmt.Sprintf("%s/%s", transport.RunAd, adID),
+		},
+	}
+}
+
+func viewAdMessageCallbackUpdate(adID string) *tgbotapi.Update {
+	return &tgbotapi.Update{
+		CallbackQuery: &tgbotapi.CallbackQuery{
+			From: &tgbotapi.User{ID: mocks.ChannelCreator.ID},
+			Data: fmt.Sprintf("%s/%s", constants.ViewAdMessage, adID),
 		},
 	}
 }

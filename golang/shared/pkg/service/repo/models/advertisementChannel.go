@@ -21,19 +21,14 @@ type AdvertisementChannel struct {
 	AdvertisementID uuid.UUID `gorm:"index:idx_advertisement_channel,unique"`
 	ChannelID       int64     `gorm:"index:idx_advertisement_channel,unique"`
 
+	Advertisement Advertisement
+	Channel       Channel
+
 	Status          AdChanStatus
 	RejectionReason string
 
-	ChannelTitle   string
-	ChannelHandle  string
-	ChannelOwnerID int64
-
-	AdName        string
-	AdMessage     string
-	AdCostPerView float32
-
 	// stats
-	MessageID           int
+	ChannelPostID       int
 	DeletionScheduledAt time.Time
 
 	CreatedAt time.Time

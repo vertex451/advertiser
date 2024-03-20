@@ -9,7 +9,7 @@ import (
 )
 
 const Every2Seconds = "*/2 * * * * *"
-const EveryMinute = "0 * * * * *"
+const Every10Seconds = "*/10 * * * * *"
 const EveryHour = "0 0 * * * *"
 
 func getInterval(env string) string {
@@ -17,11 +17,11 @@ func getInterval(env string) string {
 	case config.EnvIntegration:
 		return Every2Seconds
 	case config.EnvDev:
-		return EveryMinute
+		return Every10Seconds
 	case config.EnvProd:
 		return EveryHour
 	default:
-		return EveryMinute
+		return Every10Seconds
 	}
 }
 

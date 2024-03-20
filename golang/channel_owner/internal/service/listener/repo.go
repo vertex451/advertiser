@@ -3,6 +3,7 @@ package listener
 import (
 	"advertiser/shared/pkg/service/repo/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	uuid "github.com/satori/go.uuid"
 )
 
 type Repo interface {
@@ -29,5 +30,6 @@ type Advertisement interface {
 	CreateAdChanEntries(ads []models.AdvertisementChannel)
 	UpdateAdChanEntry(channel models.AdvertisementChannel) error
 	GetAdChanDetails(id string) (*models.AdvertisementChannel, error)
+	GetAdMessageByAdChanID(id uuid.UUID) (*models.Advertisement, error)
 	GetAdChannelByStatus(status models.AdChanStatus) (res []models.AdvertisementChannel, err error)
 }

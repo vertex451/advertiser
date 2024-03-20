@@ -1,9 +1,11 @@
 package postgresql
 
 import (
+	"advertiser/shared/pkg/service/constants"
 	"advertiser/shared/pkg/service/repo/models"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	uuid "github.com/satori/go.uuid"
 )
 
 func (r *Repository) AllTopics() (res []string, err error) {
@@ -89,7 +91,7 @@ func (r *Repository) UpdateChannelTopics(channelID int64, newTopicNames []string
 	}
 
 	// Fetch new topics from the database
-	var newTopics []*models.Topic
+	var newTopics []models.Topic
 	if err = r.Db.Where("id IN ?", newTopicNames).Find(&newTopics).Error; err != nil {
 		return err
 	}
@@ -121,7 +123,11 @@ func (r *Repository) DeleteChannelAdminsEntries(chatID int64) error {
 
 func (r *Repository) GetAdsToModerateByUserID(id int64) ([]models.AdvertisementChannel, error) {
 	var ads []models.AdvertisementChannel
-	if err := r.Db.Where("channel_owner_id = ? AND status = ?", id, models.AdsStatusCreated).Find(&ads).Error; err != nil {
+	// If you need to support each admin, remove filter by role
+	if err := r.Db.
+		Preload("Advertisement").
+		Preload("Channel.ChannelAdmins", "user_id = ? AND role = ?", id, constants.StatusCreator).
+		Where("status = ?", models.AdsStatusCreated).Find(&ads).Error; err != nil {
 		return nil, err
 	}
 
@@ -130,14 +136,29 @@ func (r *Repository) GetAdsToModerateByUserID(id int64) ([]models.AdvertisementC
 
 func (r *Repository) GetAdChanDetails(id string) (*models.AdvertisementChannel, error) {
 	var ad models.AdvertisementChannel
-	if err := r.Db.First(&ad, "id = ?", id).Error; err != nil {
+	if err := r.Db.
+		Preload("Advertisement.MsgEntities").
+		Preload("Channel").
+		First(&ad, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 
 	return &ad, nil
 }
 
-func findMissingTopics(foundTopics []*models.Topic, providedNames []string) []string {
+func (r *Repository) GetAdMessageByAdChanID(adChanID uuid.UUID) (*models.Advertisement, error) {
+	//var advertisement models.Advertisement
+	var adChan models.AdvertisementChannel
+	if err := r.Db.
+		Preload("Advertisement.MsgEntities").
+		First(&adChan, adChanID).Error; err != nil {
+		return nil, err
+	}
+
+	return &adChan.Advertisement, nil
+}
+
+func findMissingTopics(foundTopics []models.Topic, providedNames []string) []string {
 	foundMap := make(map[string]bool)
 	for _, topic := range foundTopics {
 		foundMap[topic.ID] = true

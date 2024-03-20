@@ -53,41 +53,21 @@ func (uc *UseCase) CampaignDetails(campaignID uuid.UUID) (*models.Campaign, erro
 	return uc.repo.CampaignDetails(campaignID)
 }
 
-func (uc *UseCase) UpsertAd(advertisement models.Advertisement) (*uuid.UUID, error) {
+func (uc *UseCase) UpsertAd(advertisement *models.Advertisement) error {
 	var topics []string
 	for _, topic := range advertisement.TargetTopics {
 		topics = append(topics, topic.ID)
 	}
 	err := usecase.ValidateTopics(uc.topics, topics)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	return uc.repo.UpsertAd(advertisement)
 }
 
-func (uc *UseCase) GetAdDetails(id uuid.UUID) (*types.Advertisement, error) {
-	ad, err := uc.repo.GetAdDetails(id)
-	if err != nil {
-		return nil, err
-	}
-
-	coverage := 0
-	var topicList []string
-	for _, topic := range ad.TargetTopics {
-		topicList = append(topicList, topic.ID)
-		coverage += uc.cache.topics[topic.ID]
-	}
-
-	return &types.Advertisement{
-		Budget:   ad.Budget,
-		Coverage: coverage,
-		ID:       ad.ID,
-		Message:  ad.Message,
-		Name:     ad.Name,
-		Status:   ad.Status,
-		Topics:   topicList,
-	}, nil
+func (uc *UseCase) GetAdDetails(id uuid.UUID) (*models.Advertisement, error) {
+	return uc.repo.GetAdDetails(id)
 }
 
 func (uc *UseCase) RunAd(id uuid.UUID) error {

@@ -17,9 +17,9 @@ package transport
 //			testName: "TestAllTopicsCommand",
 //			update: tgbotapi.Update{
 //				Message: &tgbotapi.Message{
-//					Entities: []tgbotapi.MessageEntity{{Type: "bot_command", Length: len(constants.AllTopics) + 1}},
+//					MsgEntities: []tgbotapi.MessageEntity{{Type: "bot_command", Length: len(constants.AllTopics) + 1}},
 //					Chat:     &tgbotapi.Chat{ID: 6406834985},
-//					Text:     fmt.Sprintf("/%s", constants.AllTopics)},
+//					MsgText:     fmt.Sprintf("/%s", constants.AllTopics)},
 //			},
 //			expectedMsgText: `
 //Supported topics:
@@ -42,9 +42,9 @@ package transport
 //			testName: "TestStartCommand",
 //			update: tgbotapi.Update{
 //				Message: &tgbotapi.Message{
-//					Entities: []tgbotapi.MessageEntity{{Type: "bot_command", Length: len(constants.Start) + 1}},
+//					MsgEntities: []tgbotapi.MessageEntity{{Type: "bot_command", Length: len(constants.Start) + 1}},
 //					Chat:     &tgbotapi.Chat{ID: 6406834985},
-//					Text:     fmt.Sprintf("/%s", constants.Start)},
+//					MsgText:     fmt.Sprintf("/%s", constants.Start)},
 //			},
 //			expectedMsgText: "Choose action:",
 //		},
@@ -72,7 +72,7 @@ package transport
 //			updatesChan <- tt.update
 //			msgRaw, _ := <-targetChan
 //			msg := msgRaw.(tgbotapi.MessageConfig)
-//			assert.Equal(t, tt.expectedMsgText, msg.Text)
+//			assert.Equal(t, tt.expectedMsgText, msg.MsgText)
 //		})
 //	}
 //}

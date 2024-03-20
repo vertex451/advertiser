@@ -18,6 +18,7 @@ func GetAllTables() []interface{} {
 		models.ChannelAdmin{},
 		models.Campaign{},
 		models.Advertisement{},
+		models.MsgEntity{},
 		models.AdvertisementChannel{},
 		models.AdvertisementTopic{},
 	}
@@ -40,6 +41,7 @@ func New(cfg *config.Config) *gorm.DB {
 		GetAllTables()...,
 	)
 	if err != nil {
+		fmt.Println("### err", err)
 		zap.L().Panic("failed to AutoMigrate", zap.Error(err))
 	}
 

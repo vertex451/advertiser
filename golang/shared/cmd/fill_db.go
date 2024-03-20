@@ -186,11 +186,11 @@ func (r *Repository) fillAds() {
 		{
 			ID:          uuid.FromStringOrNil("25f9451e-1f65-426f-85ff-7735bc39fc41"),
 			CampaignID:  uuid.FromStringOrNil("1f97e147-95cd-46c3-b2e1-a2f750a486e8"),
-			Name:        "McDonalds",
-			Message:     "I'm loving it!",
+			Name:        "McDonald's",
 			Status:      "created",
 			Budget:      100,
 			CostPerView: 0.1,
+			MsgText:     "Try our new burger!",
 		},
 	}
 

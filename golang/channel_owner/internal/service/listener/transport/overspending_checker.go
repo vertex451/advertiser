@@ -27,7 +27,7 @@ func (s *Service) CalculateTotalCostForSingleAd(ad models.Advertisement) {
 	var totalAdViews, msgViews int
 	for _, adChan := range ad.AdsChannel {
 		if adChan.Status == models.AdChanPosted {
-			msgViews, err = s.tgApi.GetMessageViews(adChan.ChannelHandle, adChan.MessageID)
+			msgViews, err = s.tgApi.GetMessageViews(adChan.Channel.Handle, adChan.ChannelPostID)
 			if err != nil {
 				zap.L().Error("failed to get message views", zap.Error(err))
 				// TODO add backoff
@@ -40,7 +40,7 @@ func (s *Service) CalculateTotalCostForSingleAd(ad models.Advertisement) {
 	deleteAdErr := false
 	if float32(totalAdViews)*ad.CostPerView >= float32(ad.Budget)*DeletePostThreshold {
 		for _, adChan := range ad.AdsChannel {
-			err = s.DeleteAdvertisement(adChan.ID.String(), adChan.ChannelID, adChan.MessageID)
+			err = s.DeleteAdvertisement(adChan.ID.String(), adChan.ChannelID, adChan.ChannelPostID)
 			if err != nil {
 				deleteAdErr = true
 			}
