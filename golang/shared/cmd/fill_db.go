@@ -23,15 +23,17 @@ func New(cfg *config.Config) *Repository {
 }
 
 func main() {
-	r := New(config.Load())
+	cfg := config.Load()
+
+	r := New(cfg)
 	r.FillTopics()
-	r.fillChannelOwnerData()
+	//r.fillOwnerData()
 	r.fillAgencyData()
 
 	fmt.Println("Database filled")
 }
 
-func (r *Repository) fillChannelOwnerData() {
+func (r *Repository) fillOwnerData() {
 	r.fillChannels()
 }
 

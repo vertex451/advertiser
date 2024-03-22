@@ -1,7 +1,7 @@
 package transport
 
 import (
-	"advertiser/channel_owner/internal/service/listener"
+	"advertiser/owner/internal/service/listener"
 	"advertiser/shared/pkg/service/constants"
 	"advertiser/shared/pkg/service/transport"
 	"advertiser/shared/pkg/service/types"

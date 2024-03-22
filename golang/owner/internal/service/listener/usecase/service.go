@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"advertiser/channel_owner/internal/service/listener"
+	"advertiser/owner/internal/service/listener"
 	"advertiser/shared/pkg/service/constants"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"

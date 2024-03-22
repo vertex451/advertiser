@@ -25,13 +25,15 @@ func GetAllTables() []interface{} {
 }
 
 func New(cfg *config.Config) *gorm.DB {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Warsaw",
-		cfg.PostgresHost,
-		"postgres",
-		"postgres",
-		"postgres",
-		cfg.PostgresPort,
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Warsaw",
+		cfg.DbHost,
+		cfg.DbUser,
+		cfg.Secrets.DbPassword,
+		cfg.DbName,
+		cfg.DbPort,
 	)
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		zap.L().Panic("failed to connect database", zap.Error(err))
@@ -41,7 +43,6 @@ func New(cfg *config.Config) *gorm.DB {
 		GetAllTables()...,
 	)
 	if err != nil {
-		fmt.Println("### err", err)
 		zap.L().Panic("failed to AutoMigrate", zap.Error(err))
 	}
 

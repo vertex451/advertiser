@@ -1,18 +1,32 @@
 version: '3.9'
 
 services:
-#  channel_owner:
-#    container_name: channel_owner
-#    build:
-#      context: ./golang/
-#      dockerfile: Dockerfile
-#    depends_on:
-#      - postgres
-#    env_file:
-#      - ./golang/channel_owner/.env
-#    environment:
-#      - POSTGRES_HOST=postgres
-#    restart: always
+  owner:
+    image: vertex451/owner:latest
+    container_name: owner
+    build:
+      context: .
+      dockerfile: infra/owner/Dockerfile
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=postgres
+    restart: always
+  agency:
+    image: vertex451/agency:latest
+    container_name: agency
+    build:
+      context: .
+      dockerfile: infra/agency/Dockerfile
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=postgres
+    restart: always
   postgres:
     container_name: postgres
     image: postgres:15.6

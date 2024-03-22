@@ -1,4 +1,4 @@
-module advertiser/channel_owner
+module advertiser/owner
 
 go 1.21.3
 

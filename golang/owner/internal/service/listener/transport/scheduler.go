@@ -27,7 +27,7 @@ func getInterval(env string) string {
 
 func (s *Service) RunNotificationService() {
 	zap.L().Info("running notification service", zap.String("pattern", getInterval(s.env)))
-	s.StartChannelOwnerNewAdsChecker()
+	s.StartOwnerNewAdsChecker()
 	s.StartNewAdsChecker()
 	s.StartOverspendingChecker()
 }
@@ -41,9 +41,9 @@ func (s *Service) StartNewAdsChecker() {
 	}
 }
 
-func (s *Service) StartChannelOwnerNewAdsChecker() {
+func (s *Service) StartOwnerNewAdsChecker() {
 	_, err := s.cron.AddFunc(getInterval(s.env), func() {
-		s.NotifyChannelOwnersAboutNewAds(models.AdChanCreated)
+		s.NotifyOwnersAboutNewAds(models.AdChanCreated)
 	})
 	if err != nil {
 		zap.L().Error("failed to run new ads notification service", zap.Error(err))

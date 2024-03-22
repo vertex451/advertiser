@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func (s *Service) NotifyChannelOwnersAboutNewAds(status models.AdChanStatus) {
+func (s *Service) NotifyOwnersAboutNewAds(status models.AdChanStatus) {
 	res, err := s.uc.GetAdsChannelByStatus(status)
 	if err != nil {
 		return

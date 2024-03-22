@@ -1,7 +1,7 @@
 package main
 
 import (
-	"advertiser/channel_owner/internal/dep_container"
+	"advertiser/owner/internal/dep_container"
 	"advertiser/shared/config/config"
 	"advertiser/shared/pkg/service/repo"
 	"fmt"

@@ -1,9 +1,9 @@
 package integration_tests
 
 import (
-	"advertiser/channel_owner/internal/service/listener/repo/postgresql"
-	"advertiser/channel_owner/internal/service/listener/transport"
-	"advertiser/channel_owner/internal/service/listener/usecase"
+	"advertiser/owner/internal/service/listener/repo/postgresql"
+	"advertiser/owner/internal/service/listener/transport"
+	"advertiser/owner/internal/service/listener/usecase"
 	"advertiser/shared/config/config"
 	"advertiser/shared/pkg/logger"
 	"advertiser/shared/pkg/service/repo"

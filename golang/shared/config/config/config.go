@@ -1,11 +1,9 @@
 package config
 
 import (
-	"fmt"
 	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
-	"log"
-	"os"
+	"go.uber.org/zap"
 )
 
 const (
@@ -18,32 +16,32 @@ type Config struct {
 	Env      string `env:"ENV" envDefault:"dev"`
 	LogLevel string `env:"LOG_LEVEL" envDefault:"DEBUG"`
 
-	PostgresHost string `env:"POSTGRES_HOST" envDefault:"localhost"`
-	PostgresPort string `env:"POSTGRES_PORT" envDefault:"5432"`
+	DbHost string `env:"DB_HOST" envDefault:"localhost"`
+	DbPort string `env:"DB_PORT" envDefault:"5432"`
+	DbUser string `env:"DB_USER" envDefault:"postgres"`
+	DbName string `env:"DB_NAME" envDefault:"postgres"`
 
 	Secrets Secrets
 }
 
 type Secrets struct {
-	TelegramToken string `env:"TELEGRAM_TOKEN,required"`
+	AgencyTgToken string `env:"AGENCY_TG_TOKEN,required"`
+	OwnerTgToken  string `env:"OWNER_TG_TOKEN,required"`
+	DbPassword    string `env:"DB_PASSWORD,required"`
 }
 
 func Load() *Config {
-	path, err := os.Getwd()
+	// load .env file into env variables
+	err := godotenv.Load()
 	if err != nil {
-		log.Println(err)
-	}
-	fmt.Println(path)
-
-	err = godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file: %e", err)
+		zap.L().Warn("no .env file found, using default values")
 	}
 
+	// parse environment variables into struct
 	cfg := Config{}
-	err = env.Parse(&cfg) // Parse environment variables into `Config`
+	err = env.Parse(&cfg)
 	if err != nil {
-		log.Fatalf("unable to parse ennvironment variables: %e", err)
+		zap.L().Warn("failed to parse environment variables", zap.Error(err))
 	}
 
 	return &cfg

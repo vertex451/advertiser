@@ -14,4 +14,4 @@ Also, send notifications if topics are not set.
 
 # Potential issues:
 1. We sticks not to userID but to chatID and in case of new bot(new chat id) we need migration.
-2. If bot i s banned, we can create new bot, we need to add it to each channel again. Store channel_owners contact
+2. If bot i s banned, we can create new bot, we need to add it to each channel again. Store owners contact

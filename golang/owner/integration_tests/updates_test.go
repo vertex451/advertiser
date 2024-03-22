@@ -1,7 +1,7 @@
 package integration_tests
 
 import (
-	"advertiser/channel_owner/internal/service/listener/transport"
+	"advertiser/owner/internal/service/listener/transport"
 	"advertiser/shared/pkg/service/constants"
 	"advertiser/shared/tg_bot_api/mocks"
 	"fmt"
