@@ -8,8 +8,8 @@ import (
 
 type CustomMessage interface {
 	tgbotapi.Chattable
-	GetMessageConfig() tgbotapi.MessageConfig
-	SetChatID(int64)
+	// GetMessageConfig() tgbotapi.MessageConfig
+	//SetChatID(int64)
 	SetReplyMarkup(markup interface{})
 	SkipDeletion() bool
 }
@@ -63,9 +63,9 @@ type CustomPhotoConfig struct {
 	skipDeletion bool
 }
 
-func (msg *CustomMessageConfig) SetChatID(chatID int64) {
-	msg.ChatID = chatID
-}
+//func (msg *CustomMessageConfig) SetChatID(chatID int64) {
+//	msg.ChatID = chatID
+//}
 
 func (msg *CustomMessageConfig) SetReplyMarkup(markup interface{}) {
 	msg.ReplyMarkup = markup
@@ -75,13 +75,13 @@ func (msg *CustomMessageConfig) SkipDeletion() bool {
 	return msg.skipDeletion
 }
 
-func (msg *CustomMessageConfig) GetMessageConfig() tgbotapi.MessageConfig {
-	return msg.MessageConfig
-}
+//func (msg *CustomMessageConfig) GetMessageConfig() tgbotapi.MessageConfig {
+//	return msg.MessageConfig
+//}
 
-func (msg *CustomPhotoConfig) SetChatID(chatID int64) {
-	msg.ChatID = chatID
-}
+//func (msg *CustomPhotoConfig) SetChatID(chatID int64) {
+//	msg.ChatID = chatID
+//}
 
 func (msg *CustomPhotoConfig) SetReplyMarkup(markup interface{}) {
 	msg.ReplyMarkup = markup
@@ -91,9 +91,9 @@ func (msg *CustomPhotoConfig) SkipDeletion() bool {
 	return msg.skipDeletion
 }
 
-func (msg *CustomPhotoConfig) GetMessageConfig() tgbotapi.MessageConfig {
-	return tgbotapi.NewMessage(msg.ChatID, "Photo")
-}
+//func (msg *CustomPhotoConfig) GetMessageConfig() tgbotapi.MessageConfig {
+//	return tgbotapi.NewMessage(msg.ChatID, "Photo")
+//}
 
 func AddNavigationButtons(msg CustomMessage, rows [][]tgbotapi.InlineKeyboardButton) CustomMessage {
 	if rows == nil {

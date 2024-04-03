@@ -6,6 +6,8 @@ import (
 	"advertiser/shared/pkg/service/types"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"go.uber.org/zap"
+	"os"
 	"sort"
 	"strings"
 )
@@ -96,7 +98,11 @@ func ComposeAdMessage(
 ) types.CustomMessage {
 	msgText := composeText(ad)
 
-	return composeImage(adChanChannelID, msgText, ad.MsgImageURL, rows, addNavigation, skipDeletion)
+	if ad.MsgImageURL != "" {
+		return composeImageMessage(adChanChannelID, msgText, ad.MsgImageURL, rows, addNavigation, skipDeletion)
+	} else {
+		return composePlainMessage(adChanChannelID, msgText, rows, addNavigation, skipDeletion)
+	}
 }
 
 func composeText(ad models.Advertisement) string {
@@ -134,41 +140,55 @@ func composeText(ad models.Advertisement) string {
 	return composedMsg.String()
 }
 
-func composeImage(
+func composeImageMessage(
 	adChanChannelID int64,
 	msgText, msgImageURL string,
 	rows [][]tgbotapi.InlineKeyboardButton,
 	addNavigation, skipDeletion bool,
 ) types.CustomMessage {
-	if msgImageURL != "" {
-		msg := tgbotapi.NewPhoto(
-			adChanChannelID,
-			tgbotapi.FilePath(msgImageURL),
-		)
-		msg.Caption = msgText
-		msg.ParseMode = tgbotapi.ModeHTML
-
-		return types.NewCustomPhotoConfig(
-			msg,
-			rows,
-			addNavigation,
-			skipDeletion,
-		)
-	} else {
-		msg := tgbotapi.NewMessage(
-			adChanChannelID,
-			msgText,
-		)
-		msg.ParseMode = tgbotapi.ModeHTML
-		msg.DisableWebPagePreview = true
-
-		return types.NewCustomMessageConfig(
-			msg,
-			rows,
-			addNavigation,
-			skipDeletion,
-		)
+	imgBytes, err := os.ReadFile(msgImageURL)
+	if err != nil {
+		zap.L().Error("failed to load image from disk")
+		return composePlainMessage(adChanChannelID, msgText, rows, addNavigation, skipDeletion)
 	}
+
+	msg := tgbotapi.NewPhoto(
+		adChanChannelID,
+		tgbotapi.FileBytes{
+			Name:  msgImageURL,
+			Bytes: imgBytes,
+		})
+
+	msg.Caption = msgText
+	msg.ParseMode = tgbotapi.ModeHTML
+
+	return types.NewCustomPhotoConfig(
+		msg,
+		rows,
+		addNavigation,
+		skipDeletion,
+	)
+}
+
+func composePlainMessage(
+	adChanChannelID int64,
+	msgText string,
+	rows [][]tgbotapi.InlineKeyboardButton,
+	addNavigation, skipDeletion bool,
+) types.CustomMessage {
+	msg := tgbotapi.NewMessage(
+		adChanChannelID,
+		msgText,
+	)
+	msg.ParseMode = tgbotapi.ModeHTML
+	msg.DisableWebPagePreview = true
+
+	return types.NewCustomMessageConfig(
+		msg,
+		rows,
+		addNavigation,
+		skipDeletion,
+	)
 }
 
 func sortEntitiesByOffset(entities []models.MsgEntity) {

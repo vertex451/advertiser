@@ -1,3 +1,7 @@
+.PHONY: go_run_owner
+go_run_owner:
+	cd ./golang/owner && go run cmd/main.go
+
 .PHONY: tests
 tests: integration-test-up
 	go test -v -cover ./...

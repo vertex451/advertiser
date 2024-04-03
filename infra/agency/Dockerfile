@@ -18,6 +18,7 @@ WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/agency/myapp .
+COPY ../../golang/agency/example.jpg .
 
 
 # Command to run the executable

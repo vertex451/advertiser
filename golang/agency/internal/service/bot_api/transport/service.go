@@ -4,6 +4,7 @@ import (
 	"advertiser/shared/pkg/service/constants"
 	"advertiser/shared/pkg/service/transport"
 	"advertiser/shared/pkg/service/types"
+	"advertiser/shared/pkg/storage"
 	"advertiser/shared/tg_bot_api"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
@@ -45,17 +46,24 @@ const (
 type Transport struct {
 	tgBotApi     tg_bot_api.TgBotApiProvider
 	uc           bot_api.UseCase
+	storage      storage.Provider
 	updateConfig tgbotapi.UpdateConfig
 	state        sync.Map // map[UserID]stateData
 	env          string
 }
 
-func New(uc bot_api.UseCase, tgBotApi tg_bot_api.TgBotApiProvider, env string) *Transport {
+func New(
+	uc bot_api.UseCase,
+	tgBotApi tg_bot_api.TgBotApiProvider,
+	storage storage.Provider,
+	env string,
+) *Transport {
 	zap.L().Info("Started Transport")
 
 	return &Transport{
 		tgBotApi: tgBotApi,
 		uc:       uc,
+		storage:  storage,
 		env:      env,
 	}
 }

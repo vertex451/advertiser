@@ -1,4 +1,5 @@
 .env
+stage.env
 golang/agency/.env
 
 .idea/

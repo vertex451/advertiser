@@ -9,12 +9,15 @@ import (
 const (
 	EnvIntegration = "integration"
 	EnvDev         = "dev"
+	EnvStage       = "stage"
 	EnvProd        = "prod"
 )
 
 type Config struct {
 	Env      string `env:"ENV" envDefault:"dev"`
 	LogLevel string `env:"LOG_LEVEL" envDefault:"DEBUG"`
+
+	DataDir string `env:"DATA_DIR" envDefault:"/Users/vertex451/tg-bot-data"`
 
 	DbHost string `env:"DB_HOST" envDefault:"localhost"`
 	DbPort string `env:"DB_PORT" envDefault:"5432"`
@@ -27,7 +30,11 @@ type Config struct {
 type Secrets struct {
 	AgencyTgToken string `env:"AGENCY_TG_TOKEN,required"`
 	OwnerTgToken  string `env:"OWNER_TG_TOKEN,required"`
-	DbPassword    string `env:"DB_PASSWORD,required"`
+
+	DbPassword string `env:"DB_PASSWORD,required"`
+
+	//AwsAccessKey string `env:"AWS_ACCESS_KEY_ID,required"`
+	//AwsSecret    string `env:"AWS_SECRET_ACCESS_KEY,required"`
 }
 
 func Load() *Config {

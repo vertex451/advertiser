@@ -5,6 +5,7 @@ import (
 	"advertiser/shared/pkg/service/repo/models"
 	"advertiser/shared/pkg/service/transport"
 	"advertiser/shared/pkg/service/types"
+	"bytes"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pkg/errors"
@@ -198,9 +199,12 @@ func (t *Transport) createAdMetadata(respondTo int64, campaignID, input string) 
 		adID:  ad.ID.String(),
 	})
 
+	path, _ := os.Getwd()
+	fmt.Println("### path", path)
+
 	photoMsg := tgbotapi.NewPhoto(
 		respondTo,
-		tgbotapi.FilePath("/Users/vertex451/workplace/silverspase/tg-bot-images/example.jpg"),
+		tgbotapi.FilePath(fmt.Sprintf("%s/example.jpg", path)),
 	)
 	photoMsg.Caption = `<b>Now send an advertisement message!</b>
 
@@ -298,14 +302,7 @@ func (t *Transport) saveMsgPhoto(photos []tgbotapi.PhotoSize) (string, error) {
 		return "", nil
 	}
 
-	saveDir := "/Users/vertex451/workplace/silverspase/tg-bot-images"
-	if err := os.MkdirAll(saveDir, 0755); err != nil {
-		zap.L().Fatal("Error creating directory", zap.Error(err))
-
-		return "", errors.Errorf("Error creating directory: %v", err)
-	}
-
-	// Get the photo
+	// get the biggest photo
 	photo := photos[len(photos)-1]
 
 	file, err := t.tgBotApi.GetFile(tgbotapi.FileConfig{FileID: photo.FileID})
@@ -314,10 +311,9 @@ func (t *Transport) saveMsgPhoto(photos []tgbotapi.PhotoSize) (string, error) {
 
 		return "", errors.Errorf("Error getting file: %v", err)
 	}
-	fileID := file.FileID
 
 	// Get the direct URL of the photo
-	fileURL, err := t.tgBotApi.GetFileDirectURL(fileID)
+	fileURL, err := t.tgBotApi.GetFileDirectURL(file.FileID)
 	if err != nil {
 		zap.L().Error("Error getting file URL", zap.Error(err))
 
@@ -333,25 +329,16 @@ func (t *Transport) saveMsgPhoto(photos []tgbotapi.PhotoSize) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	// Create the file to save the photo
-	savePath := filepath.Join(saveDir, filepath.Base(fileID)+filepath.Ext(fileURL))
-	saveFile, err := os.Create(savePath)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		zap.L().Error("Error creating file", zap.Error(err))
-
-		return "", errors.Errorf("Error creating file: %v", err)
-	}
-	defer saveFile.Close()
-
-	// Save the photo data to the file
-	_, err = io.Copy(saveFile, resp.Body)
-	if err != nil {
-		zap.L().Error("Error saving file", zap.Error(err))
-
-		return "", errors.Errorf("Error saving file: %v", err)
+		zap.L().Error("Error reading file", zap.Error(err))
+		return "", err
 	}
 
-	return savePath, nil
+	return t.storage.Store(
+		filepath.Base(file.FileID)+filepath.Ext(fileURL),
+		bytes.NewReader(bodyBytes),
+	)
 }
 
 func (t *Transport) getAdDetails(respondTo int64, rawID string) types.CustomMessage {

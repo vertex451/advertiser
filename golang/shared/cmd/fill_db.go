@@ -27,7 +27,7 @@ func main() {
 
 	r := New(cfg)
 	r.FillTopics()
-	//r.fillOwnerData()
+	r.fillOwnerData()
 	r.fillAgencyData()
 
 	fmt.Println("Database filled")

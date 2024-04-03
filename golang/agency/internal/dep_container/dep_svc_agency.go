@@ -2,6 +2,7 @@ package dep_container
 
 import (
 	"advertiser/shared/config/config"
+	"advertiser/shared/pkg/storage/localstorage"
 	"advertiser/shared/tg_bot_api"
 	"github.com/sarulabs/di"
 	"tg-bot/internal/service/bot_api/repo/postgresql"
@@ -20,7 +21,7 @@ func RegisterTgBotApiService(builder *di.Builder) error {
 			tgBotApi := tg_bot_api.New(cfg.Secrets.AgencyTgToken)
 			r := ctn.Get(postgresqlDefName).(*postgresql.Repository)
 			uc := usecase.New(r)
-			return transport.New(uc, tgBotApi, cfg.Env), nil
+			return transport.New(uc, tgBotApi, localstorage.New(cfg.DataDir), cfg.Env), nil
 		},
 	})
 }
