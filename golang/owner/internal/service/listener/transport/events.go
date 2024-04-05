@@ -77,7 +77,10 @@ func (s *Service) handleBotIsAddedToAdminsEvent(myChatMember *tgbotapi.ChatMembe
 
 	msg = tgbotapi.NewMessage(
 		myChatMember.From.ID,
-		fmt.Sprintf("Advertiser bot was successfully added to %s", myChatMember.Chat.Title),
+		fmt.Sprintf(
+			`Advertiser bot was successfully added to %s.
+Now go to this bot and set topics to start receiving Advertisement proposals.`,
+			myChatMember.Chat.Title),
 	)
 
 	return types.NewCustomMessageConfig(

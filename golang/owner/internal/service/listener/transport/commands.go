@@ -95,7 +95,11 @@ func (s *Service) listMyChannels(respondTo int64) types.CustomMessage {
 	myChannels, err := s.uc.ListMyChannels(respondTo)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			msg = tgbotapi.NewMessage(respondTo, "You don's have Advertiser bot in your channels")
+			msg = tgbotapi.NewMessage(respondTo,
+				`You don's have Advertiser bot in your channels.
+To manage bot, add it as administrator to the channel with the following permissions:
+1. Manage Messages 3/3
+`)
 		} else {
 			zap.L().Error("failed to list channels", zap.Error(err))
 			msg = tgbotapi.NewMessage(respondTo, "failed to list channels")

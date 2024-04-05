@@ -93,6 +93,11 @@ func (s *Service) MonitorChannels() {
 			}
 		}
 
+		//_, err = s.tgBotApi.Send(tgbotapi.NewMessage(userID, "⬇"))
+		//if err != nil {
+		//	zap.L().Error("failed to add empty line", zap.Error(err))
+		//}
+
 		sentMsg, err = s.tgBotApi.Send(responseMessage)
 		if err != nil {
 			zap.L().Error("failed to send message", zap.Error(err))
