@@ -17,6 +17,9 @@ services:
     restart: always
     volumes:
       - shared_data:/var/data/tg-bot-data
+    networks:
+      - backend
+
   agency:
     image: vertex451/agency:latest
     container_name: agency
@@ -33,6 +36,9 @@ services:
     restart: always
     volumes:
       - shared_data:/var/data/tg-bot-data
+    networks:
+      - backend
+
   postgres:
     container_name: postgres
     image: postgres:15.6
@@ -40,13 +46,15 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
       POSTGRES_DB: postgres
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
 
 volumes:
   pgdata: {}
   shared_data: {}
-
-
