@@ -1,43 +1,43 @@
-version: '3.9'
+version: '3.8'
 
 services:
-  owner:
-    image: vertex451/owner:latest
-    container_name: owner
-    build:
-      context: .
-      dockerfile: infra/owner/Dockerfile
-    depends_on:
-      - postgres
-    env_file:
-      - .env
-    environment:
-      - DB_HOST=postgres
-      - DATA_DIR=/var/data/tg-bot-data
-    restart: always
-    volumes:
-      - shared_data:/var/data/tg-bot-data
-    networks:
-      - backend
-
-  agency:
-    image: vertex451/agency:latest
-    container_name: agency
-    build:
-      context: .
-      dockerfile: infra/agency/Dockerfile
-    depends_on:
-      - postgres
-    env_file:
-      - .env
-    environment:
-      - DB_HOST=postgres
-      - DATA_DIR=/var/data/tg-bot-data
-    restart: always
-    volumes:
-      - shared_data:/var/data/tg-bot-data
-    networks:
-      - backend
+#  owner:
+#    image: vertex451/owner:latest
+#    container_name: owner
+#    build:
+#      context: .
+#      dockerfile: infra/owner/Dockerfile
+#    depends_on:
+#      - postgres
+#    env_file:
+#      - .env
+#    environment:
+#      - DB_HOST=postgres
+#      - DATA_DIR=/var/data/tg-bot-data
+#    restart: always
+#    volumes:
+#      - shared_data:/var/data/tg-bot-data
+#    networks:
+#      - backend
+#
+#  agency:
+#    image: vertex451/agency:latest
+#    container_name: agency
+#    build:
+#      context: .
+#      dockerfile: infra/agency/Dockerfile
+#    depends_on:
+#      - postgres
+#    env_file:
+#      - .env
+#    environment:
+#      - DB_HOST=postgres
+#      - DATA_DIR=/var/data/tg-bot-data
+#    restart: always
+#    volumes:
+#      - shared_data:/var/data/tg-bot-data
+#    networks:
+#      - backend
 
   postgres:
     container_name: postgres
