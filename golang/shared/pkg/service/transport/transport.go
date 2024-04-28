@@ -112,30 +112,39 @@ func composeText(ad models.Advertisement) string {
 	// Sort entities by offset
 	sortEntitiesByOffset(ad.MsgEntities)
 
+	runes := []rune(ad.MsgText)
+
 	// Iterate over entities
 	for _, entity := range ad.MsgEntities {
 		// Append the text before the current entity
-		composedMsg.WriteString(ad.MsgText[currentPos:entity.Offset])
+		composedMsg.WriteString(string(runes[currentPos:entity.Offset]))
 
 		// Append the formatted text according to the entity type
 		switch entity.Type {
 		case "bold", "code", "italic", "pre", "spoiler", "strikethrough", "underline":
-			composedMsg.WriteString(fmt.Sprintf("<%s>%s</%s>",
-				stringToHtmlMap[entity.Type],
-				ad.MsgText[entity.Offset:entity.Offset+entity.Length],
-				stringToHtmlMap[entity.Type]),
+			composedMsg.WriteString(
+				fmt.Sprintf("<%s>%s</%s>",
+					stringToHtmlMap[entity.Type],
+					string(runes[entity.Offset:entity.Offset+entity.Length]),
+					stringToHtmlMap[entity.Type],
+				),
 			)
 		case "text_link":
-			composedMsg.WriteString(fmt.Sprintf("<a href=\"%s\">%s</a>", entity.URL, ad.MsgText[entity.Offset:entity.Offset+entity.Length]))
+			composedMsg.WriteString(
+				fmt.Sprintf("<a href=\"%s\">%s</a>",
+					entity.URL,
+					string(runes[entity.Offset:entity.Offset+entity.Length]),
+				),
+			)
 		default:
-			composedMsg.WriteString(ad.MsgText[entity.Offset : entity.Offset+entity.Length])
+			composedMsg.WriteString(string(runes[entity.Offset : entity.Offset+entity.Length]))
 		}
 
 		currentPos = entity.Offset + entity.Length
 	}
 
 	// Append the remaining text after the last entity
-	composedMsg.WriteString(ad.MsgText[currentPos:])
+	composedMsg.WriteString(string(runes[currentPos:]))
 
 	return composedMsg.String()
 }
