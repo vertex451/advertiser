@@ -11,7 +11,7 @@ type CustomMessage interface {
 	// GetMessageConfig() tgbotapi.MessageConfig
 	//SetChatID(int64)
 	SetReplyMarkup(markup interface{})
-	SkipDeletion() bool
+	SkipDeletionOfPrevMsg() bool
 }
 
 func NewCustomMessageConfig(
@@ -71,7 +71,7 @@ func (msg *CustomMessageConfig) SetReplyMarkup(markup interface{}) {
 	msg.ReplyMarkup = markup
 }
 
-func (msg *CustomMessageConfig) SkipDeletion() bool {
+func (msg *CustomMessageConfig) SkipDeletionOfPrevMsg() bool {
 	return msg.skipDeletion
 }
 
@@ -87,7 +87,7 @@ func (msg *CustomPhotoConfig) SetReplyMarkup(markup interface{}) {
 	msg.ReplyMarkup = markup
 }
 
-func (msg *CustomPhotoConfig) SkipDeletion() bool {
+func (msg *CustomPhotoConfig) SkipDeletionOfPrevMsg() bool {
 	return msg.skipDeletion
 }
 

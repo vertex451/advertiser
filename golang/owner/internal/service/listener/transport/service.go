@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 	"strings"
 	"sync"
+	"time"
 )
 
 // Commands:
@@ -84,19 +85,22 @@ func (s *Service) MonitorChannels() {
 
 		userID = transport.GetUserID(update)
 
-		state = s.getState(userID)
-		if !responseMessage.SkipDeletion() && state.lastMsgID != 0 {
-			deleteMsg := tgbotapi.NewDeleteMessage(userID, state.lastMsgID)
-			_, err = s.tgBotApi.Send(deleteMsg)
-			if err != nil {
-				zap.L().Error("failed to delete message", zap.Error(err))
-			}
+		//state = s.getState(userID)
+		//if !responseMessage.SkipDeletionOfPrevMsg() && state.lastMsgID != 0 {
+		//	deleteMsg := tgbotapi.NewDeleteMessage(userID, state.lastMsgID)
+		//	_, err = s.tgBotApi.Send(deleteMsg)
+		//	if err != nil {
+		//		zap.L().Error("failed to delete message", zap.Error(err))
+		//	}
+		//}
+
+		sentMsg, err = s.tgBotApi.Send(tgbotapi.NewMessage(userID, "Опрацьовую..."))
+		if err != nil {
+			zap.L().Error("failed to send message", zap.Error(err))
+			continue
 		}
 
-		//_, err = s.tgBotApi.Send(tgbotapi.NewMessage(userID, "⬇"))
-		//if err != nil {
-		//	zap.L().Error("failed to add empty line", zap.Error(err))
-		//}
+		time.Sleep(500 * time.Millisecond)
 
 		sentMsg, err = s.tgBotApi.Send(responseMessage)
 		if err != nil {

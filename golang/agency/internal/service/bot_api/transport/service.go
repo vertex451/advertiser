@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 	"sync"
 	"tg-bot/internal/service/bot_api"
+	"time"
 )
 
 const (
@@ -81,12 +82,20 @@ func (t *Transport) MonitorChannels() {
 		}
 
 		userID = transport.GetUserID(update)
-		state = t.getState(userID)
+		//state = t.getState(userID)
+		//
+		//if !responseMessage.SkipDeletionOfPrevMsg() && state.lastMsgID != 0 {
+		//	deleteMsg := tgbotapi.NewDeleteMessage(TgBotDirectChatID, state.lastMsgID)
+		//	t.tgBotApi.Send(deleteMsg)
+		//}
 
-		if !responseMessage.SkipDeletion() && state.lastMsgID != 0 {
-			deleteMsg := tgbotapi.NewDeleteMessage(TgBotDirectChatID, state.lastMsgID)
-			t.tgBotApi.Send(deleteMsg)
+		sentMsg, err = t.tgBotApi.Send(tgbotapi.NewMessage(userID, "Опрацьовую..."))
+		if err != nil {
+			zap.L().Error("failed to send message", zap.Error(err))
+			continue
 		}
+
+		time.Sleep(500 * time.Millisecond)
 
 		sentMsg, err = t.tgBotApi.Send(responseMessage)
 		if err != nil {

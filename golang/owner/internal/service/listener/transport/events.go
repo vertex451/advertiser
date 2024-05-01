@@ -22,7 +22,7 @@ func (s *Service) handleBotIsAddedToAdminsEvent(myChatMember *tgbotapi.ChatMembe
 			msg,
 			nil,
 			false,
-			false,
+			true,
 		)
 	}
 
@@ -32,7 +32,7 @@ func (s *Service) handleBotIsAddedToAdminsEvent(myChatMember *tgbotapi.ChatMembe
 		},
 	})
 	if err != nil {
-		zap.L().Error("failed to get admin list", zap.Error(err))
+		zap.L().Error("failed to get admin list, try to dismiss bot from admin and add it again.", zap.Error(err))
 		msg = tgbotapi.NewMessage(
 			myChatMember.From.ID,
 			fmt.Sprintf("Failed to get admin list for %s, please check bots permissions", myChatMember.Chat.Title),
@@ -106,7 +106,7 @@ func (s *Service) handleBotIsRemovedFromAdminsEvent(myChatMember *tgbotapi.ChatM
 		msg,
 		nil,
 		false,
-		false,
+		true,
 	)
 }
 
