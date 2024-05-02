@@ -20,6 +20,7 @@ type Listener interface {
 	ListMyChannels(userID int64) (map[int64]string, error)
 	GetChannelInfo(channelID int64) (channel *models.Channel, err error)
 	UpdateChannelTopics(channelID int64, topics []string) (err error)
+	UpdateChannelCostPerMile(channelID int64, costPerMile float64) (err error)
 	UpdateChannelLocation(channelID int64, location constants.Location) (err error)
 
 	GetAdsToModerateByUserID(id int64) ([]models.AdvertisementChannel, error)

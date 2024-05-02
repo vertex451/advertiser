@@ -108,6 +108,10 @@ func (r *Repository) UpdateChannelTopics(channelID int64, newTopicNames []string
 	return r.Db.Save(&channel).Error
 }
 
+func (r *Repository) UpdateChannelCostPerMile(channelID int64, costPerMile float64) error {
+	return r.Db.Model(&models.Channel{}).Where("id = ?", channelID).Update("cost_per_mile", costPerMile).Error
+}
+
 func (r *Repository) UpdateChannelLocation(channelID int64, location constants.Location) error {
 	return r.Db.Model(&models.Channel{}).Where("id = ?", channelID).Update("location", location).Error
 }

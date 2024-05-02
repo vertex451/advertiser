@@ -88,13 +88,13 @@ func AddNavigationButtons(msg CustomMessage, rows [][]tgbotapi.InlineKeyboardBut
 		replyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 			tgbotapi.NewInlineKeyboardRow(
 				tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("« Назад"), constants.Back),
-				tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("Почати спочатку ↺"), constants.Start),
+				tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("Заново ↺"), constants.Start),
 			),
 		)
 	} else {
 		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("« Назад"), constants.Back),
-			tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("Почати спочатку ↺"), constants.Start),
+			tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("Заново ↺"), constants.Start),
 		))
 		replyMarkup = tgbotapi.NewInlineKeyboardMarkup(rows...)
 	}

@@ -10,8 +10,9 @@ type Channel struct {
 	ID int64 `gorm:"primary_key"`
 
 	//Metadata
-	Topics   []Topic `gorm:"many2many:channel_topics;"`
-	Location constants.Location
+	Topics      []Topic `gorm:"many2many:channel_topics;"`
+	CostPerMile float64
+	Location    constants.Location
 
 	ChannelAdmins []ChannelAdmin `gorm:"foreignKey:ChannelID"`
 

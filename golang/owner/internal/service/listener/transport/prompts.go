@@ -54,6 +54,31 @@ func (s *Service) editChannelLocationPrompt(respondTo int64, rawChannelID string
 	)
 }
 
+func (s *Service) editCostPerMilePrompt(respondTo int64, rawChannelID string) types.CustomMessage {
+	channelID, err := strconv.ParseInt(rawChannelID, 10, 64)
+	if err != nil {
+		zap.L().Panic("failed to parse channelID into int64 at editTopicsPrompt",
+			zap.Error(err), zap.Any("rawChannelID", rawChannelID))
+	}
+
+	s.setState(respondTo, stateData{
+		state:     StateEditCostPerMile,
+		channelID: channelID,
+	})
+
+	msgText := `Надішліть <b>бажану</b> ціну за тисячу переглядів в USD(Нариклад: 5.15). 
+Канали з доступнішою ціною мають вищий пріорітет в черзі на рекламу.
+`
+
+	return types.NewCustomMessageConfig(
+		tgbotapi.NewMessage(respondTo, msgText),
+		nil,
+		false,
+		false,
+		false,
+	)
+}
+
 func (s *Service) reportBugPrompt(respondTo int64) types.CustomMessage {
 	s.setState(respondTo, stateData{
 		state: StateReportBug,

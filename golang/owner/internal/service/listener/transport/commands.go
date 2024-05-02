@@ -45,6 +45,9 @@ func (s *Service) NavigateToPage(params transport.CallBackQueryParams) types.Cus
 		return s.editChannelLocationPrompt(params.UserID, params.Variable)
 	case SetChannelLocation:
 		return s.setChannelLocation(params.UserID, params.Variable, params.SecondVariable)
+	case EditChannelCostPerMile:
+		return s.editCostPerMilePrompt(params.UserID, params.Variable)
+
 	case ModerateDetails:
 		return s.getAdvertisementDetails(params.UserID, params.Variable)
 	case constants.ViewAdMessage:
@@ -241,10 +244,12 @@ func (s *Service) listChannelTopics(respondTo int64, rawChannelID string) types.
 		} else {
 			text = fmt.Sprintf(`<b>%s</b>
 Локація: %s
-Топіки: %s`,
+Топіки: %s
+Бажана ціна за 1к переглядів: %v USD`,
 				channelInfo.Title,
 				constants.Locations[channelInfo.Location],
 				strings.Join(topics, ", "),
+				channelInfo.CostPerMile,
 			)
 		}
 		msg = tgbotapi.NewMessage(respondTo, text)
@@ -261,6 +266,12 @@ func (s *Service) listChannelTopics(respondTo int64, rawChannelID string) types.
 			tgbotapi.NewInlineKeyboardButtonData(
 				"Змінити топіки",
 				fmt.Sprintf("%s/%s", EditChannelTopics, strconv.FormatInt(channelID, 10)),
+			),
+		},
+		{
+			tgbotapi.NewInlineKeyboardButtonData(
+				"Змінити ціну за 1к переглядів",
+				fmt.Sprintf("%s/%s", EditChannelCostPerMile, strconv.FormatInt(channelID, 10)),
 			),
 		},
 	}
@@ -314,6 +325,46 @@ func (s *Service) editChannelTopics(respondTo, channelID int64, topics []string)
 			false,
 		)
 	}
+}
+
+func (s *Service) editCostPerMile(respondTo, channelID int64, rawCostPerMile string) types.CustomMessage {
+	s.resetState(respondTo)
+
+	costPerMile, err := strconv.ParseFloat(rawCostPerMile, 64)
+	if err != nil {
+		zap.L().Error("failed to parse string to float32 in editCostPerMile", zap.Error(err),
+			zap.String("rawCostPerMile", rawCostPerMile))
+
+		s.setState(respondTo, stateData{
+			state:     StateEditCostPerMile,
+			channelID: channelID,
+		})
+
+		return types.NewCustomMessageConfig(
+			tgbotapi.NewMessage(respondTo, "Помилка, введіть коректну ціну за тисячу переглядів, наприклад 5.15"),
+			nil,
+			false,
+			false,
+			false,
+		)
+	}
+
+	var msg tgbotapi.MessageConfig
+	err = s.uc.UpdateChannelCostPerMile(channelID, costPerMile)
+	if err != nil {
+		zap.L().Error("failed to update channel cost per mile", zap.Error(err))
+		msg = tgbotapi.NewMessage(respondTo, fmt.Sprintf("Не вдалося оновити ціну за тисячу переглядів. Помилка: %v", err))
+	} else {
+		msg = tgbotapi.NewMessage(respondTo, "Оновлено!")
+	}
+
+	return types.NewCustomMessageConfig(
+		msg,
+		nil,
+		true,
+		false,
+		false,
+	)
 }
 
 func (s *Service) setChannelLocation(respondTo int64, rawChannelID, rawLocation string) types.CustomMessage {

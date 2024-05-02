@@ -17,8 +17,10 @@ import (
 
 // Commands:
 const (
-	ListChannelInfo     = "list_channels_info"
-	EditChannelTopics   = "edit_channel_topics"
+	ListChannelInfo        = "list_channels_info"
+	EditChannelTopics      = "edit_channel_topics"
+	EditChannelCostPerMile = "edit_channel_cost_per_mile"
+
 	EditChannelLocation = "edit_channel_location"
 	SetChannelLocation  = "set_channel_location"
 
@@ -36,7 +38,8 @@ type BotState int
 const (
 	StateStart BotState = iota
 	StateEditTopics
-	StateEditLocation
+	//there is no StateEditLocation since it is done via callback buttons, not via the waiting for the input state
+	StateEditCostPerMile
 	StateWaitForRejectReason
 	StateReportBug
 	StateRequestFeature
@@ -160,6 +163,8 @@ func (s *Service) handleStateQuery(update tgbotapi.Update) types.CustomMessage {
 	case StateEditTopics:
 		topics := strings.Split(update.Message.Text, ",")
 		return s.editChannelTopics(userID, state.channelID, topics)
+	case StateEditCostPerMile:
+		return s.editCostPerMile(userID, state.channelID, update.Message.Text)
 	case StateWaitForRejectReason:
 		return s.saveRejectionReason(userID, state.adChanID, update.Message.Text)
 	case StateReportBug:

@@ -45,6 +45,10 @@ func (uc *UseCase) UpdateChannelTopics(channelID int64, topics []string) (err er
 	return uc.updateTopicCache()
 }
 
+func (uc *UseCase) UpdateChannelCostPerMile(channelID int64, costPerMile float64) (err error) {
+	return uc.repo.UpdateChannelCostPerMile(channelID, costPerMile)
+}
+
 func (uc *UseCase) UpdateChannelLocation(channelID int64, location constants.Location) (err error) {
 	return uc.repo.UpdateChannelLocation(channelID, location)
 }
