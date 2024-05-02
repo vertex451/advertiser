@@ -136,6 +136,7 @@ func (s *Service) storeInitialChatData(myChatMember *tgbotapi.ChatMemberUpdated,
 		IsChannel:   myChatMember.Chat.IsChannel(),
 		Title:       myChatMember.Chat.Title,
 		Subscribers: membersCount,
+		CostPerMile: 10,
 	})
 
 	if err != nil {
