@@ -32,7 +32,7 @@ type Advertisement struct {
 	Status AdvertisementStatus
 
 	Budget      int
-	CostPerView float32
+	CostPerMile float32
 	TotalViews  int
 	TotalCost   float32
 

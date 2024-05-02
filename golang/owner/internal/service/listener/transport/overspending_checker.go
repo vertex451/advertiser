@@ -38,7 +38,7 @@ func (s *Service) CalculateTotalCostForSingleAd(ad models.Advertisement) {
 	}
 
 	deleteAdErr := false
-	if float32(totalAdViews)*ad.CostPerView >= float32(ad.Budget)*DeletePostThreshold {
+	if float32(totalAdViews)*ad.CostPerMile >= float32(ad.Budget)*DeletePostThreshold {
 		for _, adChan := range ad.AdsChannel {
 			err = s.DeleteAdvertisement(adChan.ID.String(), adChan.ChannelID, adChan.ChannelPostID)
 			if err != nil {
@@ -51,7 +51,7 @@ func (s *Service) CalculateTotalCostForSingleAd(ad models.Advertisement) {
 	}
 
 	ad.TotalViews = totalAdViews
-	ad.TotalCost = float32(totalAdViews) * ad.CostPerView
+	ad.TotalCost = float32(totalAdViews) * ad.CostPerMile
 
 	err = s.uc.UpdateAd(ad)
 }

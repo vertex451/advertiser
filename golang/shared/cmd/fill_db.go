@@ -191,7 +191,7 @@ func (r *Repository) fillAds() {
 			Name:        "McDonald's",
 			Status:      "created",
 			Budget:      100,
-			CostPerView: 0.1,
+			CostPerMile: 0.1,
 			MsgText:     "Try our new burger!",
 		},
 	}

@@ -87,7 +87,7 @@ To create an advertisement, send a message in the following format:
 Name: Stock market
 TargetTopics: topic1, topic2, topic3
 BudgetUSD: 100
-CostPerView: 0.1
+CostPerMile: 0.1
 Message: Follow this [link](https://www.investing.com/) to find more about investments!
 `,
 		},

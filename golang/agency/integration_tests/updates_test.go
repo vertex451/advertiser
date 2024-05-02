@@ -110,7 +110,7 @@ func createAdMetadataMessageUpdate(data string) *tgbotapi.Update {
 Name: Stock market
 TargetTopics: art, food
 BudgetUSD: 100
-CostPerView: 0.1`,
+CostPerMile: 0.1`,
 		},
 	}
 }

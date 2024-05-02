@@ -1,6 +1,7 @@
 package listener
 
 import (
+	"advertiser/shared/pkg/service/constants"
 	"advertiser/shared/pkg/service/repo/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	uuid "github.com/satori/go.uuid"
@@ -19,6 +20,7 @@ type Listener interface {
 	ListMyChannels(userID int64) (map[int64]string, error)
 	GetChannelInfo(channelID int64) (channel *models.Channel, err error)
 	UpdateChannelTopics(channelID int64, topics []string) (err error)
+	UpdateChannelLocation(channelID int64, location constants.Location) (err error)
 
 	GetAdsToModerateByUserID(id int64) ([]models.AdvertisementChannel, error)
 
@@ -27,6 +29,9 @@ type Listener interface {
 
 	UpdateAdChanEntry(channel models.AdvertisementChannel) error
 	UpdateAd(ad models.Advertisement) error
+
+	ReportBug(userID int64, message string) error
+	RequestFeature(userID int64, message string) error
 }
 
 type Writer interface {

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"advertiser/shared/pkg/service/constants"
 	"gorm.io/gorm"
 	"time"
 )
@@ -9,7 +10,8 @@ type Channel struct {
 	ID int64 `gorm:"primary_key"`
 
 	//Metadata
-	Topics []Topic `gorm:"many2many:channel_topics;"`
+	Topics   []Topic `gorm:"many2many:channel_topics;"`
+	Location constants.Location
 
 	ChannelAdmins []ChannelAdmin `gorm:"foreignKey:ChannelID"`
 

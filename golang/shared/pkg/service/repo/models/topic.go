@@ -13,6 +13,6 @@ type Topic struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-func (t Topic) Join() string {
-	return "topics"
-}
+//func (t Topic) Join() string {
+//	return "topics"
+//}

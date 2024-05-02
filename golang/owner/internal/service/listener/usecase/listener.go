@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"advertiser/shared/pkg/service/constants"
 	"advertiser/shared/pkg/service/repo/models"
 	"advertiser/shared/pkg/service/usecase"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -44,6 +45,10 @@ func (uc *UseCase) UpdateChannelTopics(channelID int64, topics []string) (err er
 	return uc.updateTopicCache()
 }
 
+func (uc *UseCase) UpdateChannelLocation(channelID int64, location constants.Location) (err error) {
+	return uc.repo.UpdateChannelLocation(channelID, location)
+}
+
 func (uc *UseCase) DeleteChannel(chatID int64) error {
 	return uc.repo.DeleteChannel(chatID)
 }
@@ -58,4 +63,12 @@ func (uc *UseCase) GetAdChanDetails(id string) (*models.AdvertisementChannel, er
 
 func (uc *UseCase) GetAdMessageByAdChanID(id uuid.UUID) (*models.Advertisement, error) {
 	return uc.repo.GetAdMessageByAdChanID(id)
+}
+
+func (uc *UseCase) ReportBug(userID int64, message string) error {
+	return uc.repo.ReportBug(userID, message)
+}
+
+func (uc *UseCase) RequestFeature(userID int64, message string) error {
+	return uc.repo.RequestFeature(userID, message)
 }

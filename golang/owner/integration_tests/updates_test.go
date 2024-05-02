@@ -95,11 +95,20 @@ func myChannelsCallbackUpdate() *tgbotapi.Update {
 	}
 }
 
-func editTopicsCallbackUpdate() *tgbotapi.Update {
+//func editTopicsCallbackUpdate() *tgbotapi.Update {
+//	return &tgbotapi.Update{
+//		CallbackQuery: &tgbotapi.CallbackQuery{
+//			From: &tgbotapi.User{ID: tgBotApiMock.ChannelCreator.ID},
+//			Data: fmt.Sprintf("%s/%d", transport.EditChannelTopics, testChannel.id),
+//		},
+//	}
+//}
+
+func editLocationCallbackUpdate() *tgbotapi.Update {
 	return &tgbotapi.Update{
 		CallbackQuery: &tgbotapi.CallbackQuery{
 			From: &tgbotapi.User{ID: tgBotApiMock.ChannelCreator.ID},
-			Data: fmt.Sprintf("%s/%d", transport.EditChannelsTopics, testChannel.id),
+			Data: fmt.Sprintf("%s/%d", transport.EditChannelLocation, testChannel.id),
 		},
 	}
 }

@@ -21,6 +21,8 @@ func GetAllTables() []interface{} {
 		models.MsgEntity{},
 		models.AdvertisementChannel{},
 		models.AdvertisementTopic{},
+		models.BugReport{},
+		models.FeatureRequest{},
 	}
 }
 

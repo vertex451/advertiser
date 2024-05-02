@@ -108,6 +108,10 @@ func (r *Repository) UpdateChannelTopics(channelID int64, newTopicNames []string
 	return r.Db.Save(&channel).Error
 }
 
+func (r *Repository) UpdateChannelLocation(channelID int64, location constants.Location) error {
+	return r.Db.Model(&models.Channel{}).Where("id = ?", channelID).Update("location", location).Error
+}
+
 func (r *Repository) DeleteChannel(chatID int64) error {
 	err := r.Db.Delete(&models.Channel{}, chatID).Error
 	if err != nil {
@@ -156,6 +160,20 @@ func (r *Repository) GetAdMessageByAdChanID(adChanID uuid.UUID) (*models.Adverti
 	}
 
 	return &adChan.Advertisement, nil
+}
+
+func (r *Repository) ReportBug(userID int64, message string) error {
+	return r.Db.Save(&models.BugReport{
+		ReportedBy: userID,
+		Message:    message,
+	}).Error
+}
+
+func (r *Repository) RequestFeature(userID int64, message string) error {
+	return r.Db.Save(&models.FeatureRequest{
+		RequestedBy: userID,
+		Message:     message,
+	}).Error
 }
 
 func findMissingTopics(foundTopics []models.Topic, providedNames []string) []string {

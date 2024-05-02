@@ -7,7 +7,6 @@ import (
 	"advertiser/shared/pkg/service/types"
 	"advertiser/shared/tg_api"
 	"advertiser/shared/tg_bot_api"
-	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
@@ -18,9 +17,12 @@ import (
 
 // Commands:
 const (
-	EditChannelsTopics = "edit_channel_topics"
-	ListChannelsTopics = "list_channels_topics"
-	MyChannels         = "my_channels"
+	ListChannelInfo     = "list_channels_info"
+	EditChannelTopics   = "edit_channel_topics"
+	EditChannelLocation = "edit_channel_location"
+	SetChannelLocation  = "set_channel_location"
+
+	MyChannels = "my_channels"
 
 	Moderate        = "moderate"
 	ModerateDetails = "moderate_details"
@@ -34,7 +36,10 @@ type BotState int
 const (
 	StateStart BotState = iota
 	StateEditTopics
+	StateEditLocation
 	StateWaitForRejectReason
+	StateReportBug
+	StateRequestFeature
 )
 
 type Service struct {
@@ -65,18 +70,18 @@ func New(uc listener.UseCase, tgBotApi tg_bot_api.TgBotApiProvider, env string) 
 
 func (s *Service) MonitorChannels() {
 	var err error
-	var sentMsg tgbotapi.Message
-	var state stateData
+	//var sentMsg tgbotapi.Message
+	//var state stateData
 	var userID int64
 	updates := s.tgBotApi.GetUpdatesChan()
 	for update := range updates {
-		fmt.Printf("\n### update %+v\n\n", update)
-		if update.CallbackQuery != nil {
-			fmt.Printf("\n### update.CallbackQuery.Message %+v\n\n", update.CallbackQuery.Message)
-		}
-		if update.Message != nil {
-			fmt.Printf("\n### update.Message %+v\n\n", update.Message)
-		}
+		//fmt.Printf("\n### update %+v\n\n", update)
+		//if update.CallbackQuery != nil {
+		//	fmt.Printf("\n### update.CallbackQuery.Message %+v\n\n", update.CallbackQuery.Message)
+		//}
+		//if update.Message != nil {
+		//	fmt.Printf("\n### update.Message %+v\n\n", update.Message)
+		//}
 
 		responseMessage := s.handleUpdate(update)
 		if responseMessage == nil {
@@ -94,21 +99,21 @@ func (s *Service) MonitorChannels() {
 		//	}
 		//}
 
-		sentMsg, err = s.tgBotApi.Send(tgbotapi.NewMessage(userID, "Опрацьовую..."))
+		_, err = s.tgBotApi.Send(tgbotapi.NewMessage(userID, "Опрацьовую..."))
 		if err != nil {
 			zap.L().Error("failed to send message", zap.Error(err))
 			continue
 		}
 
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 
-		sentMsg, err = s.tgBotApi.Send(responseMessage)
+		_, err = s.tgBotApi.Send(responseMessage)
 		if err != nil {
 			zap.L().Error("failed to send message", zap.Error(err))
 			continue
 		}
-		state.lastMsgID = sentMsg.MessageID
-		s.state.Store(userID, state)
+		//state.lastMsgID = sentMsg.MessageID
+		//s.state.Store(userID, state)
 	}
 }
 
@@ -157,6 +162,10 @@ func (s *Service) handleStateQuery(update tgbotapi.Update) types.CustomMessage {
 		return s.editChannelTopics(userID, state.channelID, topics)
 	case StateWaitForRejectReason:
 		return s.saveRejectionReason(userID, state.adChanID, update.Message.Text)
+	case StateReportBug:
+		return s.reportBug(userID, update.Message.Text)
+	case StateRequestFeature:
+		return s.requestFeature(userID, update.Message.Text)
 	default:
 		return s.start(userID)
 	}

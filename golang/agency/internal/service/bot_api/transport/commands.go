@@ -19,6 +19,7 @@ func (t *Transport) start(respondTo int64) types.CustomMessage {
 		}},
 		true,
 		false,
+		false,
 	)
 }
 
@@ -47,6 +48,7 @@ Supported topics:
 		tgbotapi.NewMessage(respondTo, msgText),
 		nil,
 		true,
+		false,
 		false,
 	)
 }

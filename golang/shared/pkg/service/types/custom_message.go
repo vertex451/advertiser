@@ -8,8 +8,6 @@ import (
 
 type CustomMessage interface {
 	tgbotapi.Chattable
-	// GetMessageConfig() tgbotapi.MessageConfig
-	//SetChatID(int64)
 	SetReplyMarkup(markup interface{})
 	SkipDeletionOfPrevMsg() bool
 }
@@ -18,6 +16,7 @@ func NewCustomMessageConfig(
 	msgConfig tgbotapi.MessageConfig,
 	rows [][]tgbotapi.InlineKeyboardButton,
 	addNavigation bool,
+	reportBug bool,
 	skipDeletion bool,
 ) CustomMessage {
 	msg := &CustomMessageConfig{
@@ -29,8 +28,11 @@ func NewCustomMessageConfig(
 	msg.DisableWebPagePreview = true
 
 	if addNavigation {
-		return AddNavigationButtons(msg, rows)
+		return AddNavigationButtons(msg, rows, reportBug)
 	} else {
+		if len(rows) > 0 {
+			msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(rows...)
+		}
 		return msg
 	}
 }
@@ -47,7 +49,7 @@ func NewCustomPhotoConfig(
 	}
 
 	if addNavigation {
-		return AddNavigationButtons(msg, rows)
+		return AddNavigationButtons(msg, rows, false)
 	} else {
 		return msg
 	}
@@ -63,10 +65,6 @@ type CustomPhotoConfig struct {
 	skipDeletion bool
 }
 
-//func (msg *CustomMessageConfig) SetChatID(chatID int64) {
-//	msg.ChatID = chatID
-//}
-
 func (msg *CustomMessageConfig) SetReplyMarkup(markup interface{}) {
 	msg.ReplyMarkup = markup
 }
@@ -74,14 +72,6 @@ func (msg *CustomMessageConfig) SetReplyMarkup(markup interface{}) {
 func (msg *CustomMessageConfig) SkipDeletionOfPrevMsg() bool {
 	return msg.skipDeletion
 }
-
-//func (msg *CustomMessageConfig) GetMessageConfig() tgbotapi.MessageConfig {
-//	return msg.MessageConfig
-//}
-
-//func (msg *CustomPhotoConfig) SetChatID(chatID int64) {
-//	msg.ChatID = chatID
-//}
 
 func (msg *CustomPhotoConfig) SetReplyMarkup(markup interface{}) {
 	msg.ReplyMarkup = markup
@@ -91,25 +81,31 @@ func (msg *CustomPhotoConfig) SkipDeletionOfPrevMsg() bool {
 	return msg.skipDeletion
 }
 
-//func (msg *CustomPhotoConfig) GetMessageConfig() tgbotapi.MessageConfig {
-//	return tgbotapi.NewMessage(msg.ChatID, "Photo")
-//}
+func AddNavigationButtons(msg CustomMessage, rows [][]tgbotapi.InlineKeyboardButton, reportBug bool) CustomMessage {
+	var replyMarkup tgbotapi.InlineKeyboardMarkup
 
-func AddNavigationButtons(msg CustomMessage, rows [][]tgbotapi.InlineKeyboardButton) CustomMessage {
 	if rows == nil {
-		msg.SetReplyMarkup(tgbotapi.NewInlineKeyboardMarkup(
+		replyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 			tgbotapi.NewInlineKeyboardRow(
-				tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("« Back"), constants.Back),
-				tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("Start over ↺"), constants.Start),
+				tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("« Назад"), constants.Back),
+				tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("Почати спочатку ↺"), constants.Start),
 			),
-		))
+		)
 	} else {
 		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("« Back"), constants.Back),
-			tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("Start over ↺"), constants.Start),
+			tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("« Назад"), constants.Back),
+			tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("Почати спочатку ↺"), constants.Start),
 		))
-		msg.SetReplyMarkup(tgbotapi.NewInlineKeyboardMarkup(rows...))
+		replyMarkup = tgbotapi.NewInlineKeyboardMarkup(rows...)
 	}
+
+	if reportBug {
+		replyMarkup.InlineKeyboard = append(replyMarkup.InlineKeyboard, tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("Повідомити про помилку 🐞"), constants.ReportBug),
+		))
+	}
+
+	msg.SetReplyMarkup(replyMarkup)
 
 	return msg
 }

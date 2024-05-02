@@ -119,7 +119,7 @@ func (suite *MyTestSuite) PrepareModerationTest() {
 		Message:      "Visit our restaurant!",
 		Status:       models.AdsStatusPending,
 		Budget:       100,
-		CostPerView:  0.01,
+		CostPerMile:  0.01,
 	}
 	err = r.Db.Create(&testAd).Error
 	if err != nil {

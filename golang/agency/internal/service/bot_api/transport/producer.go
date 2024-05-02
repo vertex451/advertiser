@@ -458,7 +458,7 @@ func (t *Transport) RunAd(userID int64, rawID string) types.CustomMessage {
 }
 
 func parseAndValidateCreateAdInput(rawCampaignID, rawInput string) (*models.Advertisement, error) {
-	requiredFields := []string{"Name", "TargetTopics", "BudgetUSD", "CostPerView"}
+	requiredFields := []string{"Name", "TargetTopics", "BudgetUSD", "CostPerMile"}
 
 	params := parseValues(rawInput)
 	for _, field := range requiredFields {
@@ -490,7 +490,7 @@ func parseAndValidateCreateAdInput(rawCampaignID, rawInput string) (*models.Adve
 				return nil, errors.New("budget should be greater than 0")
 			}
 			ad.Budget = budget
-		case "CostPerView":
+		case "CostPerMile":
 			costPerView, err := strconv.ParseFloat(value, 32)
 			if err != nil {
 				return nil, errors.New("invalid budget format")
@@ -498,7 +498,7 @@ func parseAndValidateCreateAdInput(rawCampaignID, rawInput string) (*models.Adve
 			if costPerView <= 0 {
 				return nil, errors.New("cost per view should be greater than 0")
 			}
-			ad.CostPerView = float32(costPerView)
+			ad.CostPerMile = float32(costPerView)
 		case "TargetTopics":
 			topics := strings.Split(value, ",")
 			for _, topicName := range topics {

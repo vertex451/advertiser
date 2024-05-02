@@ -23,9 +23,10 @@ var stringToHtmlMap = map[string]string{
 }
 
 type CallBackQueryParams struct {
-	UserID   int64
-	Page     string
-	Variable string
+	UserID         int64
+	Page           string
+	Variable       string
+	SecondVariable string
 }
 
 func ParseCallBackQuery(query *tgbotapi.CallbackQuery) CallBackQueryParams {
@@ -38,6 +39,10 @@ func ParseCallBackQuery(query *tgbotapi.CallbackQuery) CallBackQueryParams {
 
 	if len(parsed) > 1 {
 		res.Variable = parsed[1]
+	}
+
+	if len(parsed) > 2 {
+		res.SecondVariable = parsed[2]
 	}
 
 	return res
@@ -196,6 +201,7 @@ func composePlainMessage(
 		msg,
 		rows,
 		addNavigation,
+		false,
 		skipDeletion,
 	)
 }

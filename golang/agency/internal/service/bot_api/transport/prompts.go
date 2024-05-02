@@ -37,7 +37,7 @@ To %s an advertisement, send a message in the following format:
 Name: McDonald's
 TargetTopics: food
 BudgetUSD: 100
-CostPerView: 0.1
+CostPerMile: 0.1
 `, action)
 
 	return types.NewCustomMessageConfig(
